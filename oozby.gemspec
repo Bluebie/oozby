@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'oozby'
-  s.version = '0.1.0'
+  s.version = '0.1.1'
   s.summary = "A markup language for OpenSCAD"
   s.author = 'Bluebie'
   s.email = "a@creativepony.com"

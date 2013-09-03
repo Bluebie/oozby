@@ -54,7 +54,8 @@ class Oozby::Environment
       method: method_name,
       args: args, named_args: hash,
       children: children, 
-      modifier: @one_time_modifier || @modifier
+      modifier: @one_time_modifier || @modifier,
+      call_address: @ast.length
     }
     
     @ast.push call
