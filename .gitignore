@@ -16,3 +16,7 @@ xcuserdata
 # svn & cvs
 .svn
 CVS
+
+# compiled scad and rubygem files
+*.scad
+*.gem
