@@ -17,7 +17,7 @@ class Oozby
     rescue
       warn "Recent Calls: " + env.instance_variable_get(:@method_history).last(10).reverse.inspect
       backtrace = $!.backtrace
-      backtrace = backtrace.select { |item| !item.include? __dir__ }
+      backtrace = backtrace.select { |item| !item.include? __dir__ } unless backtrace.first.include? __dir__
       raise $!, $!.message, backtrace
     end
     @code_tree = env._abstract_tree
