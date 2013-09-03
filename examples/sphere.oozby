@@ -1,0 +1,13 @@
+# Make a sphere, 5mm radius - 10mm diameter
+translate(x: 0) { sphere r: 5 }
+
+# same as
+translate(x: 20) { sphere radius: 5 }
+
+# same as
+translate(x: 40) { sphere diameter: 10 }
+
+# and for short
+translate(x: 60) { sphere dia: 10 }
+
+## Diameter option works only for internal functions listed in the oozby dictionary as accepting radius

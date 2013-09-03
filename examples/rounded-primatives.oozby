@@ -1,0 +1,19 @@
+# set the output resolution to be higher than default for the pretties
+resolution minimum: 0.5
+
+# Oozby patches in rounded corner support to squares and cubes in OpenSCAD. It does this by
+# detecting when a radius is specified, and emiting a complex set of primitaves which create
+# the desired shape. It doesn't use any slow hull operations, but does require a union and
+# does take a minute or so to fully CGAL render a rounded cube at the time of writing this note.
+#
+# Hopefully in the future the render time can be reduced. Maybe a good way to do that would be
+# having Oozby emit a polyhedra statement instead. Anyone want to implement that?
+# 
+# Or maybe it can be improved by working on caching.
+
+# make a rounded rectangle with a border radius of 3mm
+square([20, 20], center: true, radius: 3)
+
+# make a rounded cube with border radius of 4mm
+translate(x: 20) > cube([10, 20, 30], center: true, radius: 4)
+

@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+$:.unshift File.dirname(__FILE__) + "/../lib"
+require 'fssm'
+#require 'pp'
+require 'oozby'
+
+def recompile file
+  ooz = Oozby.new
+  ooz.parse_file file
+  #pp ooz.abstract_tree
+  File.open(file + '.scad', 'w') do |handle|
+    handle.write ooz.render
+  end
+  
+  puts "Updated #{File.basename(file)}"
+end
+
+filename = File.absolute_path(ARGV.last)
+recompile filename
+FSSM.monitor(File.dirname(filename), File.basename(filename)) do
+  update { recompile filename }
+  create { recompile filename }
+end

@@ -1,0 +1,66 @@
+def led_lens flipped: false
+  diag_led_size = 6.85
+  led_height = 2.15 - 0.5 # height of led on strip - height of strip without components
+  led_width = 5
+  led_length_top = 5
+  diameter_of_light_area = 4
+  fabric_thickness = 2
+  bottom_diameter = diag_led_size + 1
+  bottom_radius = diag_led_size / 1.75
+  
+  defaults(center: true) do # set the default in this scope to center: true, not center: false for things which use it
+    rotate(y: if flipped then 180 else 0 end) >
+    translate(z: if flipped then -led_height - 1.8 else led_height / 2.0 - 0.2 end) >
+    difference do
+      union do
+        # cylinder to cover over the light module
+        translate(z: 0.2) >
+        cylinder(radius: bottom_radius, height: led_height)
+        
+        # cylinder to rise through fabric section, carrying light
+        translate(z: led_height - 0.15) >
+        cylinder(radius1: bottom_radius, radius2: diameter_of_light_area / 3.0, height: fabric_thickness / 2.0)
+        
+        # cylinder to rise through fabric section, carrying light
+        translate(z: led_height + 0.5) >
+        cylinder(radius1: diameter_of_light_area / 3.0, radius2: diag_led_size / 2.05, height: fabric_thickness / 2.0)
+        
+        # make top flat part
+        translate(z: led_height + 1) >
+        cylinder(diameter: diag_led_size, height: 0.5, center: false)
+        # and the tapering part atop that: 
+        translate(z: led_height + 1 + 0.5) >
+        cylinder(diameter1: diag_led_size, diameter2: diag_led_size - 0.6, height: 0.3, center: false)
+      end
+      
+      # cut out cube shape for 5050 led to fit in to
+      cube([led_width, led_length_top, led_height])
+      
+      # cut out little angle section on the top for soldering area
+      translate(y: led_length_top / 2.0, z: led_height / -2.0) >
+      rotate(x: 45) >
+      cube([led_width, 0.7, 0.7])
+      # ... and the bottom
+      translate(y: led_length_top / -2.0, z: led_height / -2.0) >
+      rotate(x: 45) >
+      cube([led_width, 0.7, 0.7])
+      
+      # cut out sections for capacitor mounted beside LED on flex board, for ws2812 strands
+      translate(x: led_length_top / 2.0 + 1.1) >
+      cube([1, led_width, led_height * 2.5])
+      # and the other side
+      translate(x: led_length_top / -2.0 - 1.1) >
+      cube([1, led_width, led_height * 2.5])
+      
+      # cut out a little pyramid inside the LED cube so there are no totally flat overhangs
+      translate(z: led_height - 0.8255) >
+      rotate(z: 45) >
+      cylinder(r1: diag_led_size / 1.94, r2: led_width / 8.0, facets: 4, height: 1.6)
+    end
+  end
+end
+
+resolution minimum: 0.1, fragments_per_turn: 128
+led_lens
+
+
