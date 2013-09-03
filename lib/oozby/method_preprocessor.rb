@@ -66,7 +66,7 @@ class Oozby::MethodPreprocessor
     end
   end
   
-  def expanded_names(info)
+  def expanded_names(info, height_label: :h)
     # let users use 'radius' as longhand for 'r'
     info.named_args[:r]  = info.named_args.delete(:radius)   if info.named_args[:radius]
     info.named_args[:r1] = info.named_args.delete(:radius1)  if info.named_args[:radius1]
@@ -94,10 +94,10 @@ class Oozby::MethodPreprocessor
     end
     
     # long version 'height' becomes 'h'
-    info.named_args[:h] = info.named_args.delete(:height) if info.named_args[:height]
+    info.named_args[height_label] = info.named_args.delete(:height) || info.named_args.delete(:h)
   end
   
-  def _linear_extrude(info); layout_defaults(info); expanded_names(info); end
+  def _linear_extrude(info); layout_defaults(info); expanded_names(info, height_label: :height); end
   def _rotate_extrude(info); layout_defaults(info); expanded_names(info); end
   
   def _circle(info); expanded_names(info); end
