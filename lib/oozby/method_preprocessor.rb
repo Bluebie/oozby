@@ -60,7 +60,7 @@ class Oozby::MethodPreprocessor
     expanded_names(info)
     layout_defaults(info)
     
-    if info[:named_args][:r]
+    if info.named_args[:r]
       # render rounded rectangle
       info.replace rounded_cube(**args_parse(info, :size, :center, :r))
     end
@@ -94,7 +94,8 @@ class Oozby::MethodPreprocessor
     end
     
     # long version 'height' becomes 'h'
-    info.named_args[height_label] = info.named_args.delete(:height) || info.named_args.delete(:h)
+    height_specification = info.named_args.delete(:height) || info.named_args.delete(:h)
+    info.named_args[height_label] = height_specification if height_specification
   end
   
   def _linear_extrude(info); layout_defaults(info); expanded_names(info, height_label: :height); end
@@ -148,11 +149,11 @@ class Oozby::MethodPreprocessor
       translate(offset) do
         # extrude the main body parts using rounded_rect as the basis
         linear_extrude(height: size[2] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[1]], center: center, r: r)) }
+          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[1]], center: true, r: r)) }
         rotate([90,0,0]) { linear_extrude(height: size[1] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[2]], center: center, r: r)) }}
+          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[2]], center: true, r: r)) }}
         rotate([0,90,0]) { linear_extrude(height: size[0] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[2], size[1]], center: center, r: r)) }}
+          inject_abstract_tree(preprocessor.rounded_rect(size: [size[2], size[1]], center: true, r: r)) }}
         
         # fill in the corners with spheres
         xr, yr, zr = size.map { |x| (x / 2) - r }
@@ -189,7 +190,7 @@ class Oozby::MethodPreprocessor
   def args_parse(info, *arg_names)
     args = info[:named_args].dup
     info[:args].length.times do |index|
-      warn "Overwriting argument #{arg_names[index]}"
+      warn "Overwriting argument #{arg_names[index]}" if args.key? arg_names[index]
       args[arg_names[index]] = info[:args][index]
     end
     
