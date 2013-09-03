@@ -76,21 +76,27 @@ class Oozby::MethodPreprocessor
     
     info.named_args[:"$fn"] = info.named_args.delete(:facets) if info.named_args[:facets]
     
-    # allow range for radius
-    if info.named_args[:r].is_a? Range
-      range = info.named_args.delete(:r)
-      info.named_args[:r1] = range.first
-      info.named_args[:r2] = range.last
-    end
-    
     # let users specify diameter instead of radius - convert it
     {  diameter: :r,                    dia: :r,               d: :r,
       diameter1: :r1, diameter_1: :r1, dia1: :r1, dia_1: :r1, d1: :r1,
       diameter2: :r2, diameter_2: :r2, dia2: :r2, dia_2: :r2, d2: :r2
     }.each do |d, r|
       if info.named_args.key? d
-        info.named_args[r] = info.named_args.delete(d) / 2.0
+        data = info.named_args.delete(d)
+        if data.is_a? Range
+          data = Range.new(data.first / 2.0, data.last / 2.0, data.exclude_end?)
+        else
+          data = data / 2.0
+        end
+        info.named_args[r] = data
       end
+    end
+    
+    # allow range for radius
+    if info.named_args[:r].is_a? Range
+      range = info.named_args.delete(:r)
+      info.named_args[:r1] = range.first
+      info.named_args[:r2] = range.last
     end
     
     # long version 'height' becomes 'h'
