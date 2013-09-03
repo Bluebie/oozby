@@ -2,28 +2,27 @@ Oozby (Oozebane + Ruby) is inspired by the realisation that OpenSCAD does not su
 
 Here are some highlights:
 
- * For built in functions which take an `r` parameter like `sphere`, `circle`, `cylinder`, you can specify any of these instead:
- * * `r`, `radius`
- * * `r1`, `radius_1`, `radius1`
- * * `r2`, `radius_2`, `radius2`
- * * `d`, `dia`, `diameter`: _anything specified as diameter will be automatically halved, taking a lot of `/ 2.0` statements out of your code__
- * * and of course `d1`, `dia1`, `dia_1`, `diameter1`, `diameter_1`, `d2`, `dia2`, `dia_2`, `diameter2`, `diameter_2`
- * For cylinders you can specify a Range for the radius option instead of specifying r1 and r2 to make tapering shapes
- * Built in functions which take 'h' like `cylinder` and `linear_extrude` can take `height` instead if you like
- * Cubes and Squares have a 'radius' option, which if > 0.0 causes the corners to be rounded very cleanly. 
- * Full support for variables, can use all of ruby's core and standard libraries, use rubygems to pull in data - read images, access web services, read databases, automatically download things from thingiverse, whatever!
- * All the round things have a 'facets' option which translates to $fn
- * No semicolons (of course!) - specify one function as the parent of the next by using a block or use the > operator (see examples)
- * Lambda, classes, methods, oh my!
- * Built in functions like translate, rotate, scale, which take a 2d or 3d vector [x,y,z] can instead have options passed like this:
- * * `translate(x: 5, y: 6)` - unspecified items default to 0
- * * `scale(y: 2)` - unspecified items default to 1 for scale. Smart!
- * Specify defaults: You can create a context within a block where everything defaults to `center: true`! How many times have you had to write `center = true` again and again when constructing something with lots of symmetry in OpenSCAD?
- * Establish a scope within a block with specific resolution settings
- * Totally legit scope.
- * Actual variables.
- * All the kinds of looping, enumeration and hard core maths Ruby is capable of. It's just ruby code after all! Need a complex number? the core Complex class has you covered! Want a mathematical Matrix? The Matrix class included in the standard ruby library is here to help! Need to work with insanely big numbers? bigdecimal to the rescue!
- * Everything in RubyGems: Parse an MP3 and print out a phonograph record! Digest an XML feed of geological data and extrude 3d shapes from it with nokogiri! Query sensor data from webcams, arduinos, microphones, buttons, joysticks, and generic usb devices! Directly read image formats with gems like ChunkyPNG and rmagick! Create automated production workflows, importing data from online store orders directly in to your printing pipeline!
+ *  For built in functions which take an `r` parameter like `sphere`, `circle`, `cylinder`, you can specify any of these instead:
+ *  * `r`, `radius`
+ *  * `r1`, `radius_1`, `radius1`
+ *  * `r2`, `radius_2`, `radius2`
+ *  * `d`, `dia`, `diameter`: _anything specified as diameter will be automatically halved, taking a lot of `/ 2.0` statements out of your code_
+ *  * and of course `d1`, `dia1`, `dia_1`, `diameter1`, `diameter_1`, `d2`, `dia2`, `dia_2`, `diameter2`, `diameter_2`
+ *  For cylinders you can specify a Range for the radius option instead of specifying r1 and r2 to make tapering shapes
+ *  Built in functions which take 'h' like `cylinder` and `linear_extrude` can take `height` instead if you like
+ *  Cubes and Squares have a `radius` option, which if `> 0.0` causes the corners to be rounded very cleanly. 
+ *  All the round things have a 'facets' option which translates to $fn
+ *  No semicolons (of course!) - specify one function as the parent of the next by using a block or use the > operator (see examples)
+ *  Lambda, classes, methods, oh my!
+ *  Built in functions like translate, rotate, scale, which take a 2d or 3d vector [x,y,z] can instead have options passed like this:
+ *  *  `translate(x: 5, y: 6)` - unspecified items default to 0
+ *  *  `scale(y: 2)` - unspecified items default to 1 for scale. Smart!
+ *  Specify defaults: You can create a context within a block where everything defaults to `center: true`! How many times have you had to write `center = true` again and again when constructing something with lots of symmetry in OpenSCAD?
+ *  Establish a scope within a block with specific resolution settings
+ *  Totally legit scope.
+ *  Actual variables.
+ *  All the kinds of looping, enumeration and hard core maths Ruby is capable of. It's just ruby code after all! Need a complex number? the core Complex class has you covered! Want a mathematical Matrix? The Matrix class included in the standard ruby library is here to help! Need to work with insanely big numbers? bigdecimal to the rescue!
+ *  Everything in RubyGems: Parse an MP3 and print out a phonograph record! Digest an XML feed of geological data and extrude 3d shapes from it with nokogiri! Query sensor data from webcams, arduinos, microphones, buttons, joysticks, and generic usb devices! Directly read image formats with gems like ChunkyPNG and rmagick! Create automated production workflows, importing data from online store orders directly in to your printing pipeline!
 
 This tool is considered very experimental at the moment and could break in horrible ways. There is a good chance the API will change and break stuff until the gem hits 1.0, but hey, get on board and lets figure out how to make OpenSCAD less horrible. Maybe if we come up with really great ideas in Oozby that will give the OpenSCAD devs a clear direction forward for new syntaxes and features in the future - kind of the same idea as rubinius and pypy! A place to quickly prototype kooky ideas.
 
