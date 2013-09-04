@@ -1,23 +1,79 @@
 #!/usr/bin/env ruby
 $:.unshift File.dirname(__FILE__) + "/../lib"
-require 'fssm'
-#require 'pp'
+require 'thor'
+#require 'fssm'
+require 'listen'
+require 'pp'
 require 'oozby'
 
-def recompile file
-  ooz = Oozby.new
-  ooz.parse_file file
-  #pp ooz.abstract_tree
-  File.open(file + '.scad', 'w') do |handle|
-    handle.write ooz.render
-  end
+class OozbyUtility < Thor
+  desc "compile some#{File::SEPARATOR}folder", "The Oozby Utility searches a directory and compiles all the .oozby files it finds, creating identically named files with .scad stuck on the end, translated in to OpenSCAD nonsense. Open those files in OpenSCAD app and enable Automatic Reload and Compile in the Design menu, then get to work."
   
-  puts "Updated #{File.basename(file)}"
+  option :verbose, type: :boolean, desc: "Output lots of gunk, to figure out bizarre bugs in Oozby"
+  option :all, type: :boolean, desc: "Don't skip any files - recompile them all!"
+  option :watch, type: :boolean, default: true, desc: "Watch directory for changes and automatically recompile"
+  def compile path
+    if File.file? path
+      ooz = Oozby.new
+      begin
+        ooz.parse_file path
+      
+        if options[:verbose]
+          puts "Oozby Abstract Syntax Tree:"
+          pp ooz.abstract_tree
+        end
+      
+        File.open(path + '.scad', 'w') do |handle|
+          handle.write ooz.render
+        end
+        
+        puts "compiled #{File.basename(path)}"
+      rescue StandardError, ScriptError => err
+        local_pwd = Dir.pwd
+        puts "#{err.class.name}: #{err.message.sub(local_pwd + File::SEPARATOR, '')}"
+        err.backtrace.each { |line| puts line.sub(local_pwd + File::SEPARATOR, '') }
+      end
+      
+    elsif File.directory? path
+      directory = File.absolute_path(path) # calculate real absolute path - follow any links
+      globber = File.join(directory, '**', '*.oozby')
+      files = Dir.glob(globber)
+      files.each do |filename|
+        compile filename if !File.exists?("#{filename}.scad") || File.mtime(filename) >= File.mtime("#{filename}.scad") || options[:all]
+      end
+      
+      if options[:watch]
+        recompile_handler = lambda do |*args|
+          compile File.join(*args)
+        end
+        
+        Listen.to! directory, filter: /\.oozby$/ do |modified, added, removed|
+          modified.each { |path| recompile_handler[path] }
+          added.each { |path| recompile_handler[path] }
+          removed.each do |path|
+            puts "#{File.basename(path)} deleted."
+            if File.exists? "#{path}.scad"
+              File.delete("{path}.scad")
+              puts "Deleted generated .scad file for obsolete #{File.basename(path)}"
+            end
+          end
+        end
+        
+        # FSSM.monitor(directory, File.join('**', '*.oozby')) do
+        #   create &recompile_handler
+        #   update &recompile_handler
+        #   delete do |dir, name|
+        #     puts "#{name} deleted."
+        #     if File.exists? File.join(dir, name + ".scad")
+        #       File.delete(File.join(dir, name + ".scad"))
+        #       puts "Deleted generated .scad file for obsolete #{name}"
+        #     end
+        #   end
+        # end
+      end
+    end
+  end
 end
 
-filename = File.absolute_path(ARGV.last)
-recompile filename
-FSSM.monitor(File.dirname(filename), File.basename(filename)) do
-  update { recompile filename }
-  create { recompile filename }
-end
+OozbyUtility.start(ARGV)
+
