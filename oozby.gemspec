@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'oozby'
-  s.version = '0.1.2'
+  s.version = '0.2.0'
   s.summary = "A markup language for OpenSCAD"
   s.author = 'Bluebie'
   s.email = "a@creativepony.com"
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   
   s.rdoc_options << '--main' << 'lib/oozby/base.rb'
   
-  s.add_dependency 'fssm', '>= 0.2.10' # monitor filesystem for changes - used by cli app to automatically rebuild on changes
+  s.add_dependency 'listen', '>= 1.3.0' # monitor filesystem for changes - used by cli app to automatically rebuild on changes
   #s.add_dependency 'colorist', '>= 0.0.2' # parses html style colours. Maybe should add this to 'color' function?
   #s.add_dependency 'colored', '>= 1.2' # colorize terminal output. Maybe use this to make oozby cli program more fabulous?
 end
