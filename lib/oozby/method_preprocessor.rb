@@ -13,15 +13,22 @@ class Oozby::MethodPreprocessor
   end
   
   # allow translate to take x, y, z named args instead of array, with defaults to 0
-  def xyz_to_array(info, default: 0, arg: false)
+  def xyz_to_array(info, default: 0, arg: false, depth: true)
     if [:x, :y, :z].any? { |name| info[:named_args].include? name }
       
       # create coordinate 'vector' (array)
-      coords = [
-        info[:named_args][:x] || default,
-        info[:named_args][:y] || default,
-        info[:named_args][:z] || default
-      ]
+      if depth
+        coords = [
+          info[:named_args][:x] || default,
+          info[:named_args][:y] || default,
+          info[:named_args][:z] || default
+        ]
+      else
+        coords = [
+          info[:named_args][:x] || default,
+          info[:named_args][:y] || default
+        ]
+      end
       
       # if argument name is specified, use that, otherwise make it the first argument in the call
       if arg
@@ -60,7 +67,7 @@ class Oozby::MethodPreprocessor
     expanded_names(info)
     layout_defaults(info)
     
-    if info.named_args[:r]
+    if info.named_args[:r] && info.named_args[:r] > 0.0
       # render rounded rectangle
       info.replace rounded_cube(**args_parse(info, :size, :center, :r))
     end
@@ -112,10 +119,10 @@ class Oozby::MethodPreprocessor
   def _cylinder(info); expanded_names(info); layout_defaults(info); end
   def _square(info)
     expanded_names(info)
-    xyz_to_array(info, default: 1, arg: :size)
+    xyz_to_array(info, default: 1, arg: :size, depth: false)
     layout_defaults(info)
     
-    if info[:named_args][:r]
+    if info[:named_args][:r] and info.named_args[:r] > 0.0
       # render rounded rectangle
       info.replace rounded_rect(**args_parse(info, :size, :center, :r))
     end
