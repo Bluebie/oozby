@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 $:.unshift File.dirname(__FILE__) + "/../lib"
 require 'thor'
-#require 'fssm'
 require 'listen'
 require 'pp'
 require 'oozby'
@@ -47,6 +46,7 @@ class OozbyUtility < Thor
           compile File.join(*args)
         end
         
+        puts "Watching folder for changes... (CTRL+C to exit)"
         Listen.to! directory, filter: /\.oozby$/ do |modified, added, removed|
           modified.each { |path| recompile_handler[path] }
           added.each { |path| recompile_handler[path] }
@@ -58,20 +58,11 @@ class OozbyUtility < Thor
             end
           end
         end
-        
-        # FSSM.monitor(directory, File.join('**', '*.oozby')) do
-        #   create &recompile_handler
-        #   update &recompile_handler
-        #   delete do |dir, name|
-        #     puts "#{name} deleted."
-        #     if File.exists? File.join(dir, name + ".scad")
-        #       File.delete(File.join(dir, name + ".scad"))
-        #       puts "Deleted generated .scad file for obsolete #{name}"
-        #     end
-        #   end
-        # end
       end
     end
+  rescue Interrupt => e
+    puts ""
+    puts "Have a nice day!"
   end
 end
 
