@@ -122,6 +122,10 @@ class Oozby::Environment
   # gets and sets resolution settings
   def resolution **settings, &proc
     warn "Setting fragments_per_turn and degrees_per_fragment together makes no sense!" if settings[:fragments_per_turn] && settings[:degrees_per_fragment]
+    settings[:fragments_per_turn] ||= settings.delete(:facets_per_turn)
+    settings[:degrees_per_fragment] ||= settings.delete(:degrees_per_facet)
+    settings[:fragments] ||= settings.delete(:facets)
+    settings.delete_if { |key,value| value == nil }
     previous_settings = @resolution
     @resolution.merge! settings
     @resolution[:degrees_per_fragment] = 360.0 / settings[:fragments_per_turn].to_f if settings[:fragments_per_turn]

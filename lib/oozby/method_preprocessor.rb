@@ -69,7 +69,7 @@ class Oozby::MethodPreprocessor
     
     if info.named_args[:r] && info.named_args[:r] > 0.0
       # render rounded rectangle
-      info.replace rounded_cube(**args_parse(info, :size, :center, :r))
+      info.replace rounded_cube(**args_parse(info, :size, :center))
     end
   end
   
@@ -82,6 +82,7 @@ class Oozby::MethodPreprocessor
     info.named_args[:r2] = info.named_args.delete(:radius_2) if info.named_args[:radius_2]
     
     info.named_args[:"$fn"] = info.named_args.delete(:facets) if info.named_args[:facets]
+    info.named_args[:"$fn"] = info.named_args.delete(:fragments) if info.named_args[:fragments]
     
     # let users specify diameter instead of radius - convert it
     {  diameter: :r,                    dia: :r,               d: :r,
@@ -124,26 +125,28 @@ class Oozby::MethodPreprocessor
     
     if info[:named_args][:r] and info.named_args[:r] > 0.0
       # render rounded rectangle
-      info.replace rounded_rect(**args_parse(info, :size, :center, :r))
+      info.replace rounded_rect(**args_parse(info, :size, :center).merge(facets: info.named_args["$fn"]))
     end
   end
   
-  def rounded_rect size: [1,1], center: false, r: 0.0
+  def rounded_rect size: [1,1], center: false, r: 0.0, facets: nil
     diameter = r * 2
     circle_x = (size[0] / 2.0) - r
     circle_y = (size[1] / 2.0) - r
     
     capture do
-      translate(if center then [0,0] else [size[0].to_f / 2.0, size[1].to_f / 2.0] end) do
-        union do
-          square([size[0], size[1] - diameter], center = true)
-          square([size[0] - diameter, size[1]], center = true)
-          preprocessor true do
-            resolution(fragments: (_fragments_for(radius: r).to_f / 4.0).round * 4.0) do
-              translate([ circle_x,  circle_y]) { circle(r: r) }
-              translate([ circle_x, -circle_y]) { circle(r: r) }
-              translate([-circle_x, -circle_y]) { circle(r: r) }
-              translate([-circle_x,  circle_y]) { circle(r: r) }
+      resolution(fragments: (facets || 0)) do
+        translate(if center then [0,0] else [size[0].to_f / 2.0, size[1].to_f / 2.0] end) do
+          union do
+            square([size[0], size[1] - diameter], center = true)
+            square([size[0] - diameter, size[1]], center = true)
+            preprocessor true do
+              resolution(fragments: (_fragments_for(radius: r).to_f / 4.0).round * 4.0) do
+                translate([ circle_x,  circle_y]) { circle(r: r) }
+                translate([ circle_x, -circle_y]) { circle(r: r) }
+                translate([-circle_x, -circle_y]) { circle(r: r) }
+                translate([-circle_x,  circle_y]) { circle(r: r) }
+              end
             end
           end
         end
@@ -151,44 +154,46 @@ class Oozby::MethodPreprocessor
     end
   end
   
-  def rounded_cube size: [1,1,1], center: false, r: 0.0
+  def rounded_cube size: [1,1,1], center: false, r: 0.0, facets: nil
     size = [size[0] || 1, size[1] || 1, size[2] || 1]
     diameter = r.to_f * 2.0
     
     preprocessor = self
     # use rounded rect to create the body shape
     capture do
-      offset = if center then [0,0,0] else [size[0].to_f / 2.0, size[1].to_f / 2.0, size[2].to_f / 2.0] end
-      translate(offset) do
-        # extrude the main body parts using rounded_rect as the basis
-        linear_extrude(height: size[2] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[1]], center: true, r: r)) }
-        rotate([90,0,0]) { linear_extrude(height: size[1] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[2]], center: true, r: r)) }}
-        rotate([0,90,0]) { linear_extrude(height: size[0] - diameter, center: true) {
-          inject_abstract_tree(preprocessor.rounded_rect(size: [size[2], size[1]], center: true, r: r)) }}
+      resolution(fragments: (facets || 0)) do
+        offset = if center then [0,0,0] else [size[0].to_f / 2.0, size[1].to_f / 2.0, size[2].to_f / 2.0] end
+        translate(offset) do
+          # extrude the main body parts using rounded_rect as the basis
+          linear_extrude(height: size[2] - diameter, center: true) {
+            inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[1]], center: true, r: r)) }
+          rotate([90,0,0]) { linear_extrude(height: size[1] - diameter, center: true) {
+            inject_abstract_tree(preprocessor.rounded_rect(size: [size[0], size[2]], center: true, r: r)) }}
+          rotate([0,90,0]) { linear_extrude(height: size[0] - diameter, center: true) {
+            inject_abstract_tree(preprocessor.rounded_rect(size: [size[2], size[1]], center: true, r: r)) }}
         
-        # fill in the corners with spheres
-        xr, yr, zr = size.map { |x| (x / 2) - r }
-        corner_coordinates = [
-          [ xr, yr, zr],
-          [ xr, yr,-zr],
-          [ xr,-yr, zr],
-          [ xr,-yr,-zr],
-          [-xr, yr, zr],
-          [-xr, yr,-zr],
-          [-xr,-yr, zr],
-          [-xr,-yr,-zr]
-        ]
-        preprocessor true do
-          resolution(fragments: (_fragments_for(radius: r).to_f / 4.0).round * 4.0) do
-            corner_coordinates.each do |coordinate|
-              translate(coordinate) do
-                # generate sphere shape
-                rotate_extrude do
-                  intersection do
-                    circle(r: r)
-                    translate([r, 0, 0]) { square([r * 2, r * 4], center: true) }
+          # fill in the corners with spheres
+          xr, yr, zr = size.map { |x| (x / 2) - r }
+          corner_coordinates = [
+            [ xr, yr, zr],
+            [ xr, yr,-zr],
+            [ xr,-yr, zr],
+            [ xr,-yr,-zr],
+            [-xr, yr, zr],
+            [-xr, yr,-zr],
+            [-xr,-yr, zr],
+            [-xr,-yr,-zr]
+          ]
+          preprocessor true do
+            resolution(fragments: (_fragments_for(radius: r).to_f / 4.0).round * 4.0) do
+              corner_coordinates.each do |coordinate|
+                translate(coordinate) do
+                  # generate sphere shape
+                  rotate_extrude do
+                    intersection do
+                      circle(r: r)
+                      translate([r, 0, 0]) { square([r * 2, r * 4], center: true) }
+                    end
                   end
                 end
               end
