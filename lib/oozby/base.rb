@@ -12,7 +12,7 @@ class Oozby
     
     # rescue block to filter out junk oozby library stuff from backtraces
     begin
-      compiled = eval("lambda {; #{code}; }", nil, filename)
+      compiled = eval("lambda {; #{code};\n }", nil, filename)
       env.instance_exec(&compiled)
     rescue
       warn "Recent Calls: " + env.instance_variable_get(:@method_history).last(10).reverse.inspect
