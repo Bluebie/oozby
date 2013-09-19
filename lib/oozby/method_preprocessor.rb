@@ -83,11 +83,20 @@ class Oozby::MethodPreprocessor
     
     info.named_args[:"$fn"] = info.named_args.delete(:facets) if info.named_args[:facets]
     info.named_args[:"$fn"] = info.named_args.delete(:fragments) if info.named_args[:fragments]
+    info.named_args[:"$fn"] = info.named_args.delete(:sides) if info.named_args[:sides]
+    
+    info.named_args[:ir] = info.named_args.delete(:inr) if info.named_args[:inr]
+    info.named_args[:ir] = info.named_args.delete(:inradius) if info.named_args[:inradius]
+    info.named_args[:ir] = info.named_args.delete(:inner_r) if info.named_args[:inner_r]
+    info.named_args[:ir] = info.named_args.delete(:inner_radius) if info.named_args[:inner_radius]
     
     # let users specify diameter instead of radius - convert it
     {  diameter: :r,                    dia: :r,               d: :r,
       diameter1: :r1, diameter_1: :r1, dia1: :r1, dia_1: :r1, d1: :r1,
-      diameter2: :r2, diameter_2: :r2, dia2: :r2, dia_2: :r2, d2: :r2
+      diameter2: :r2, diameter_2: :r2, dia2: :r2, dia_2: :r2, d2: :r2,
+      id: :ir, inner_diameter: :ir, inner_d: :ir,
+      id1: :ir1, inner_diameter_1: :ir1, inner_diameter1: :ir1,
+      id2: :ir2, inner_diameter_2: :ir2, inner_diameter2: :ir2
     }.each do |d, r|
       if info.named_args.key? d
         data = info.named_args.delete(d)
@@ -97,6 +106,24 @@ class Oozby::MethodPreprocessor
           data = data / 2.0
         end
         info.named_args[r] = data
+      end
+    end
+    
+    # process 'inner radius' bits
+    { ir: :r, ir1: :r1, ir2: :r2 }.each do |ir, r|
+      if info.named_args.key? ir
+        sides = info.named_args[:"$fn"].to_i
+        raise "Use of inner radius requires sides/facets/fragments argument to #{info.method}()" unless sides
+        raise "Sides must be at least 3" unless sides >= 3
+        inradius = info.named_args.delete(ir)
+        if inradius.is_a? Range
+          circumradius = Range.new(inradius.first.to_f / @env.cos(180.0 / sides),
+                           inradius.first.to_f / @env.cos(180.0 / sides),
+                           inradius.exclude_end?)
+        else
+          circumradius = inradius.to_f / @env.cos(180.0 / sides)
+        end
+        info.named_args[r] = circumradius
       end
     end
     
@@ -221,6 +248,50 @@ class Oozby::MethodPreprocessor
         instance_eval(&proc)
       }
     }).first    
+  end
+  
+  # meta! construct aliases which preset some values
+  def self.oozby_alias from, to, extra_args = {}
+    define_method "_#{from}" do |info|
+      info.method = to
+      info.named_args.merge! extra_args
+      send("_#{to}", info) if self.respond_to? "_#{to}"
+    end
+  end
+  
+  # some regular shapes - from:
+  # http://en.wikipedia.org/wiki/Regular_polygon#Regular_convex_polygons
+  {
+    triangle: 3,
+    equilateral_triangle: 3,
+    pentagon: 5,
+    hexagon: 6,
+    heptagon: 7,
+    octagon: 8,
+    nonagon: 9,
+    enneagon: 9,
+    decagon: 10,
+    hendecagon: 11,
+    undecagon: 11,
+    dodecagon: 12,
+    tridecagon: 13,
+    tetradecagon: 14,
+    pentadecagon: 15,
+    hexadecagon: 16,
+    heptadecagon: 17,
+    octadecagon: 18,
+    enneadecagon: 19,
+    icosagon: 20,
+    triacontagon: 30,
+    tetracontagon: 40,
+    pentacontagon: 50,
+    hexacontagon: 60,
+    heptacontagon: 70,
+    octacontagon: 80,
+    enneacontagon: 90,
+    hectogon: 100
+  }.each do |shape_name, sides|
+    oozby_alias shape_name, :circle, sides: sides
   end
 end
 
