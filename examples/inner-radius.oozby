@@ -1,0 +1,23 @@
+inner_radius = 8 # 8 millimeters
+wall_thickness = 1
+
+# in the middle create a ring wall_thickness thick, as a reference piece
+color("green")>
+difference do
+  circle(radius: inner_radius)
+  circle(radius: inner_radius - wall_thickness)
+end
+
+# now iterate through 8 different numbers of sides
+side_counts = 3..10
+side_counts.each_with_index do |sides, idx|
+  # lay each of the ngons out in a circle around the reference part
+  angle = (360.0 / side_counts.size) * idx
+  
+  rotate(z: angle)>
+  translate(x: 30)>
+  difference do
+    circle(inner_radius: inner_radius, sides: sides)
+    circle(radius: inner_radius - 1)
+  end
+end
