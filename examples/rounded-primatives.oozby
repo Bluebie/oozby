@@ -17,3 +17,10 @@ square([20, 20], center: true, radius: 3)
 # make a rounded cube with border radius of 4mm
 translate(x: 20) > cube([10, 20, 30], center: true, radius: 4)
 
+# make a hexagon with a circle removed from the middle with a 1mm wall
+translate(x: -25) > 
+difference do
+  hexagon(inner_radius: 10 + 1)
+  circle(radius: 10)
+end
+
