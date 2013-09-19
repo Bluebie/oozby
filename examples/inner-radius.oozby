@@ -1,3 +1,14 @@
+# This example shows the inner_radius option. The normal radius option for items
+# like circle, cylinder, sphere, specify the outer radius or circumradius of a
+# polygon or polyhedron shape. When the number of sides is explicit as with an
+# octogon or a triangle, you can specify the inradius instead if you like.
+#
+# You can specify inner_radius as inradius, ir, and so on. It's used with shapes
+# like circles, spheres, and cylinders, as well as the oozby hexagon, octagon,
+# etc functions. The only requirement for inner_radius is that the number of
+# sides for the object is explicit, via specifying 'hexagon' or sides: 5
+# or something like that
+
 inner_radius = 8 # 8 millimeters
 wall_thickness = 1
 
