@@ -62,7 +62,7 @@ class OozbyUtility < Thor
           removed.each do |path|
             puts "#{File.basename(path)} deleted."
             if File.exists? "#{path}.scad"
-              File.delete("{path}.scad")
+              File.delete("#{path}.scad")
               puts "Deleted generated .scad file for obsolete #{File.basename(path)}"
             end
           end
