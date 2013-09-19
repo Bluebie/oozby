@@ -1,6 +1,8 @@
+require_relative 'lib/oozby/version.rb'
+
 Gem::Specification.new do |s|
   s.name = 'oozby'
-  s.version = '0.2.2'
+  s.version = Oozby.version
   s.summary = "A markup language for OpenSCAD"
   s.author = 'Bluebie'
   s.email = "a@creativepony.com"
