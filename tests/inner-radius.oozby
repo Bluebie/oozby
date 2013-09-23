@@ -1,0 +1,28 @@
+color("green")>
+difference do
+  circle(radius: 11)
+  circle(radius: 10)
+end
+
+side_counts = 3..10
+
+side_counts.each_with_index do |sides, idx|
+  angle = 360.0 / side_counts.length
+  
+  rotate(z: angle)>
+  translate(x: 30)>
+  difference do
+    circle(radius: size * ratio, sides: sides)
+    circle(radius: 10)
+  end
+end
+
+translate(x: -30) > 
+difference do
+  size = 11.0
+  sides = 4
+  ratio = Math.sqrt((1 ** 2) + (sin(360.0 / sides) ** 2))
+  highlight;
+  circle(radius: size * ratio, sides: sides)
+  circle(radius: 10)
+end
