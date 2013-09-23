@@ -1,18 +1,49 @@
+# The Oozby Method Preprocessor handles requests via the transform_call method
+# and transforms the Oozby::Element passed in, patching in any extra features
+# and trying to alert the user of obvious bugs
+
+
 class Oozby::MethodPreprocessor
-  NoResolution = %i{translate rotate scale mirror resize difference union intersection hull minkowski}
+  # never pass resolution data in to these methods - it's pointless:
+  NoResolution = %i(translate rotate scale mirror resize difference union intersection hull minkowski color)
+  # list of OpenSCAD standard methods - these can pass through without error:
+  DefaultOpenSCADMethods = %i(
+    cube sphere cylinder polyhedron
+    circle square polygon
+    scale resize rotate translate mirror multmatrix color minkowski hull
+    linear_extrude rotate_extrude import projection
+    union difference intersection render
+  )
   
+  attr_accessor :openscad_methods
+  # setup a new method preprocessor
   def initialize env: nil, ooz: nil
     @env = env
     @parent = ooz
+    @openscad_methods = DefaultOpenSCADMethods.dup
   end
   
+  # accepts an Oozby::Element and transforms it according to the processors' rules
   def transform_call(call_info)
     send("_#{call_info.method}", call_info) if respond_to? "_#{call_info.method}"
     resolution call_info unless NoResolution.include? call_info.method # apply resolution settings from scope
     return call_info
   end
   
-  # allow translate to take x, y, z named args instead of array, with defaults to 0
+  # does this processor know of a method named whatever?
+  def known? name
+    return true if respond_to? "_#{name}"
+    return @openscad_methods.include? name.to_sym
+  end
+  
+  # array of all known method names
+  def known
+    list = @openscad_methods.dup
+    list.push *public_methods(false).select { |method_name| method_name.to_s.start_with? '_' }.map { |x| x.to_s.sub(/_/, '').to_sym }
+    list.uniq
+  end
+  
+  # allow method to take x, y, z named args instead of array, with defaults to 0
   def xyz_to_array(info, default: 0, arg: false, depth: true)
     if [:x, :y, :z].any? { |name| info[:named_args].include? name }
       
@@ -42,12 +73,12 @@ class Oozby::MethodPreprocessor
     end
   end
   
-  # layout defaults like center = whatever
+  # layout defaults like {center: true}
   def layout_defaults(info)
     info[:named_args] = @env.defaults.dup.merge(info[:named_args])
   end
   
-  # apply resolution settings to call info
+  # apply resolution settings to element
   ResolutionLookupTable = {degrees_per_fragment: :"$fa", minimum: :"$fs", fragments: :"$fn"}
   def resolution(info)
     res = @env.resolution
@@ -73,6 +104,12 @@ class Oozby::MethodPreprocessor
     end
   end
   
+  # general processing of arguments:
+  #  -o> Friendly names - use radius instead of r if you like
+  #  -o> Ranges - can specify radius: 5...10 instead of r1: 5, r2: 10
+  #  -o> Make h/height consistent (either works everywhere)
+  #  -o> Support inner radius, when number of sides is specified
+  #  -o> Specify diameter and have it halved automatically
   def expanded_names(info, height_label: :h)
     # let users use 'radius' as longhand for 'r'
     info.named_args[:r]  = info.named_args.delete(:radius)   if info.named_args[:radius]
@@ -263,7 +300,7 @@ class Oozby::MethodPreprocessor
   
   # some regular shapes - from:
   # http://en.wikipedia.org/wiki/Regular_polygon#Regular_convex_polygons
-  {
+  polygon_names = {
     triangle: 3,
     equilateral_triangle: 3,
     pentagon: 5,
@@ -292,8 +329,26 @@ class Oozby::MethodPreprocessor
     octacontagon: 80,
     enneacontagon: 90,
     hectogon: 100
-  }.each do |shape_name, sides|
+  }
+  polygon_names.each do |shape_name, sides|
     oozby_alias shape_name, :circle, sides: sides
+  end
+  
+  # make a polygon with an arbitrary number of sides
+  oozby_alias :ngon, :circle, sides: 3
+  # make a prism with an arbitrary number of sides
+  oozby_alias :prism, :cylinder, sides: 3
+  
+  # triangles are an edge case
+  oozby_alias :triangular_prism, :cylinder, sides: 3
+  
+  # for all the rest, transform the prism names automatically
+  polygon_names.each do |poly_name, sides|
+    name = poly_name.to_s
+    if name.end_with? 'gon'
+      name += 'al_prism'
+      oozby_alias name, :cylinder, sides: sides
+    end
   end
 end
 
