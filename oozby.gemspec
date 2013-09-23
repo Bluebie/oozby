@@ -1,4 +1,4 @@
-require_relative 'lib/oozby/version.rb'
+require './lib/oozby/version.rb'
 
 Gem::Specification.new do |s|
   s.name = 'oozby'
