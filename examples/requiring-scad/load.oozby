@@ -1,0 +1,13 @@
+# example showing how you can load an OpenSCAD file from inside an Oozby thing
+# and call on that openscad file's modules as if they are oozby methods.
+require 'requirable.scad'
+
+resolution minimum: 0.5
+
+color('green')>
+hexagonal_prism(radius: 10, height: 2, center: true)
+
+color('red')>
+scadish_thing()
+sin(5)
+
