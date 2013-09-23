@@ -1,5 +1,5 @@
 class Oozby
-  Version = '0.2.3'
+  Version = '0.3.0'
   
   def self.version
     Oozby::Version
