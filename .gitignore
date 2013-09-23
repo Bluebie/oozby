@@ -18,5 +18,5 @@ xcuserdata
 CVS
 
 # compiled scad and rubygem files
-*.scad
+*.oozby.scad
 *.gem
