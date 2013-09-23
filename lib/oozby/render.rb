@@ -35,8 +35,12 @@ class Oozby::Render
           output.push "}"
         end
         
+      elsif node.key? :comment
+        output.push "/* #{node[:comment]} */"
       elsif node.key? :assign
-        output << "#{node[:assign]} = #{escape(node[:value])};"
+        output.push "#{node[:assign]} = #{escape(node[:value])};"
+      elsif node.key? :import
+        output.push "#{node[:execute] ? 'include' : 'use'} <#{node[:import]}>;"
       end
     end
     

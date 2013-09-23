@@ -1,3 +1,5 @@
+require 'amatch' # used to find possible intended method names
+
 class Oozby::Environment
   ResolutionDefaults = {
     degrees_per_fragment: 12,
@@ -14,8 +16,8 @@ class Oozby::Environment
     @modifier = nil
     @one_time_modifier = nil
     @preprocess = true
-    @method_history = []
     @method_preprocessor = Oozby::MethodPreprocessor.new(env: self, ooz: @parent)
+    @scanned_scad_files = []
   end
   
   # create a new scope that inherits from this one, and capture syntax tree created
@@ -44,6 +46,21 @@ class Oozby::Environment
   end
   
   def method_missing method_name, *args, **hash, &proc
+    # unless we know of this method in OpenSCAD or the preprocessor, abort!
+    unless @method_preprocessor.known?(method_name) or !@preprocess
+      # grab a list of all known methods, suggest a guess to user
+      known = @method_preprocessor.known
+      known.push(*public_methods(false))
+      known.delete_if { |x| x.to_s.start_with? '_' }
+      matcher = Amatch::Sellers.new(method_name.to_s)
+      suggestion = known.min_by { |item| matcher.match(item.to_s) }
+      
+      warn "Called unknown method #{method_name}()"
+      warn "Perhaps you meant #{suggestion}()?" if suggestion
+      
+      return super # continue to raise the usual error and all that
+    end
+    
     if proc
       children = _subscope(&proc)
     else
@@ -58,11 +75,13 @@ class Oozby::Environment
       call_address: @ast.length
     }
     
+    @ast.push(comment: "oozby code: " + JSON.generate(call)) if @parent.debug
+    
     @ast.push call
     element = Oozby::Element.new(call, @ast)
     @method_preprocessor.transform_call(element) if @preprocess
     @one_time_modifier = nil
-    @method_history.push method_name # maintain list of recent methods to aid debugging
+    
     return element
   end
   
@@ -169,7 +188,44 @@ class Oozby::Environment
     _apply_modifier('!', &proc)
   end
   
+  def require *args
+    file = args.first
+    if file.end_with? '.scad'
+      _require_scad_file(*args)
+    elsif File.exists? "#{file}.scad"
+      _require_scad_file("#{args.shift}.scad", *args)
+    else
+      Kernel.require(*args)
+    end
+  end
   
+  def _require_scad_file filename, execute: true
+    raise "OpenSCAD file #{filename} not found" unless File.exists? filename
+    _scan_methods_from_scad_file filename
+    
+    # add include statement to resulting openscad code
+    @ast.push(execute: !!execute, import: filename)
+  end
+  
+  def _scan_methods_from_scad_file filename
+    raise "OpenSCAD file #{filename} not found" unless File.exists? filename
+    data = File.read(filename)
+    @scanned_scad_files.push filename
+    
+    # parse out method definitions to add to our environment
+    data.gsub!(/\/\/.+?\n/m, "\n") # filter off single line comments
+    data.gsub!(/\/\*.+?\*\//m, '') # filter out multiline comments
+    data.scan /module[ \t]([a-zA-Z_9-9]+)/ do |module_name|
+      @method_preprocessor.openscad_methods.push module_name.first.to_sym
+    end
+    
+    # find any references to more files and recurse in to those
+    data.scan /(use|include)[ \t]\<(.+?)\>/ do |filename|
+      unless @scanned_scad_files.include? filename
+        _scan_methods_from_scad_file filename
+      end
+    end
+  end
   
   def _apply_modifier new_modifier, &children
     if children
@@ -185,6 +241,8 @@ class Oozby::Environment
   
   # returns the abstract tree
   def _abstract_tree; @ast; end
+  
+  def inspect; "OozbyFile"; end
 end
 
 

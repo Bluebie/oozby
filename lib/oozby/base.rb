@@ -2,25 +2,37 @@ require 'pp'
 
 # Oozby class loads up files and evaluates them to a syntax tree, and renders to openscad source code
 class Oozby
+  attr_accessor :filter_errors, :debug
+  
   def initialize
     @code_tree = []
+    @filter_errors = false
+    @debug = false
   end
   
   # parse oozby code in to a syntax tree
   def parse code, filename: 'eval'
     env = Oozby::Environment.new(ooz: self)
+    if File.exists? filename
+      current_dir = Dir.pwd
+      Dir.chdir File.dirname(filename)
+    end
     
     # rescue block to filter out junk oozby library stuff from backtraces
     begin
       compiled = eval("lambda {; #{code};\n }", nil, filename)
       env.instance_exec(&compiled)
-    rescue
-      warn "Recent Calls: " + env.instance_variable_get(:@method_history).last(10).reverse.inspect
+    rescue StandardError, NoMethodError => err
       backtrace = $!.backtrace
-      backtrace = backtrace.select { |item| !item.include? __dir__ } unless backtrace.first.include? __dir__
+      #backtrace = backtrace.select { |item| !item.include? __dir__ } unless backtrace.first.include? __dir__
+      backtrace.delete_if { |item| item.to_s =~ /(\.rb|\/oozby):/ } if @filter_errors
+      
       raise $!, $!.message, backtrace
     end
     @code_tree = env._abstract_tree
+    
+  ensure
+    Dir.chdir current_dir if current_dir
   end
   
   # parse a file containing oozby code in to a syntax tree
@@ -31,7 +43,7 @@ class Oozby
   # render the last parsed oozby code in to openscad source code
   def render
     renderer = Oozby::Render.new(ooz: self)
-    renderer.render(@code_tree, clean: true).join("\n")
+    renderer.render(@code_tree, clean: true).join("\n") + "\n"
   end
   
   def abstract_tree
