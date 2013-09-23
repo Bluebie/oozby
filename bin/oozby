@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
-$:.unshift File.dirname(__FILE__) + "/../lib"
 require 'thor'
 require 'listen'
 require 'pp'
-require 'oozby'
+require File.join(__dir__, '..', 'lib', 'oozby')
 
 # motivational exit messages!
 $quit_message = {
