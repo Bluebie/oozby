@@ -22,6 +22,9 @@ class OozbyUtility < Thor
   def compile path
     if File.file? path
       ooz = Oozby.new
+      ooz.filter_errors = !options[:verbose]
+      ooz.debug = options[:verbose]
+      
       begin
         ooz.parse_file path
       
@@ -35,10 +38,11 @@ class OozbyUtility < Thor
         end
         
         puts "compiled #{File.basename(path)}"
-      rescue StandardError, ScriptError => err
+      rescue StandardError, ScriptError, NoMethodError => err
         local_pwd = Dir.pwd
         puts "#{err.class.name}: #{err.message.sub(local_pwd + File::SEPARATOR, '')}"
         err.backtrace.each { |line| puts line.sub(local_pwd + File::SEPARATOR, '') }
+        puts nil, nil
       end
       
     elsif File.directory? path
