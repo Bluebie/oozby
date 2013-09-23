@@ -200,7 +200,7 @@ class Oozby::MethodPreprocessor
             inject_abstract_tree(preprocessor.rounded_rect(size: [size[2], size[1]], center: true, r: r)) }}
         
           # fill in the corners with spheres
-          xr, yr, zr = size.map { |x| (x / 2) - r }
+          xr, yr, zr = size.map { |x| (x / 2.0) - r }
           corner_coordinates = [
             [ xr, yr, zr],
             [ xr, yr,-zr],
@@ -212,14 +212,14 @@ class Oozby::MethodPreprocessor
             [-xr,-yr,-zr]
           ]
           preprocessor true do
-            resolution(fragments: (_fragments_for(radius: r).to_f / 4.0).round * 4.0) do
+            resolution(fragments: (_fragments_for(radius: r.to_f).to_f / 4.0).round * 4.0) do
               corner_coordinates.each do |coordinate|
                 translate(coordinate) do
                   # generate sphere shape
                   rotate_extrude do
                     intersection do
                       circle(r: r)
-                      translate([r, 0, 0]) { square([r * 2, r * 4], center: true) }
+                      translate([r, 0, 0]) { square([r * 2.0, r * 4.0], center: true) }
                     end
                   end
                 end
