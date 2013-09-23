@@ -157,6 +157,7 @@ class Oozby::MethodPreprocessor
   end
   
   def rounded_rect size: [1,1], center: false, r: 0.0, facets: nil
+    size = [size] * 2 if size.is_a? Numeric
     diameter = r * 2
     circle_x = (size[0] / 2.0) - r
     circle_y = (size[1] / 2.0) - r
@@ -182,6 +183,7 @@ class Oozby::MethodPreprocessor
   end
   
   def rounded_cube size: [1,1,1], center: false, r: 0.0, facets: nil
+    size = [size] * 3 if size.is_a? Numeric
     size = [size[0] || 1, size[1] || 1, size[2] || 1]
     diameter = r.to_f * 2.0
     
