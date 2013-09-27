@@ -20,7 +20,7 @@ class Oozby
     
     # rescue block to filter out junk oozby library stuff from backtraces
     begin
-      compiled = eval("lambda {; #{code};\n }", nil, filename)
+      compiled = eval("lambda {; #{code}\n }", nil, filename)
       env.instance_exec(&compiled)
     rescue StandardError, NoMethodError => err
       backtrace = $!.backtrace
