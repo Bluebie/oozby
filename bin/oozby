@@ -2,15 +2,16 @@
 require 'thor'
 require 'listen'
 require 'pp'
+require 'rbconfig'
 require File.join(__dir__, '..', 'lib', 'oozby')
 
 # motivational exit messages!
 $quit_message = {
-  '0.2.2' => "Have a nice day!",
-  '0.2.3' => "You're a superstar!",
-  '0.2.4' => "Keep up the great work!",
-  '0.2.5' => "Nice job!",
-  '0.2.6' => "It was a pleasure working with you!"
+  '0.3.0' => "Have a nice day!",
+  '0.3.1' => "You're a superstar!",
+  '0.3.2' => "Keep up the great work!",
+  '0.3.3' => "Nice job!",
+  '0.3.4' => "It was a pleasure working with you!"
 }
 
 class OozbyUtility < Thor
@@ -18,7 +19,7 @@ class OozbyUtility < Thor
   
   option :verbose, type: :boolean, desc: "Output lots of gunk, to figure out bizarre bugs in Oozby"
   option :all, type: :boolean, desc: "Don't skip any files - recompile them all!"
-  option :watch, type: :boolean, default: true, desc: "Watch directory for changes and automatically recompile"
+  option :no_watch, type: :boolean, desc: "Don't watch directory for changes - exit immediately"
   def compile path
     if File.file? path
       ooz = Oozby.new
@@ -50,12 +51,12 @@ class OozbyUtility < Thor
       globber = File.join(directory, '**', '*.oozby')
       files = Dir.glob(globber)
       files.each do |filename|
-        compile filename if !File.exists?("#{filename}.scad") || File.mtime(filename) >= File.mtime("#{filename}.scad") || options[:all]
+        subprocess_compile filename if !File.exists?("#{filename}.scad") || File.mtime(filename) >= File.mtime("#{filename}.scad") || options[:all]
       end
       
-      if options[:watch]
+      unless options[:no_watch]
         recompile_handler = lambda do |*args|
-          compile File.join(*args)
+          subprocess_compile File.join(*args)
         end
         
         puts "Watching folder for changes... (CTRL+C to exit)"
@@ -75,6 +76,18 @@ class OozbyUtility < Thor
   rescue Interrupt => e
     puts ""
     puts $quit_message[Oozby.version] || $quit_message.values.last
+  end
+  
+  private
+  # open up a subprocess to execute this file, so we don't polute the scope when watching
+  # or processing several files
+  def subprocess_compile filename
+    this_file = File.expand_path(__FILE__)
+    ruby_bin = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
+    args = [ruby_bin, this_file, 'compile']
+    args.push '--verbose' if options[:verbose]
+    args.push filename
+    system(*args)
   end
 end
 
