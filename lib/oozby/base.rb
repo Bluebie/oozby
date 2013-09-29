@@ -21,11 +21,20 @@ class Oozby
     # rescue block to filter out junk oozby library stuff from backtraces
     begin
       compiled = eval("lambda {; #{code}\n }", nil, filename)
-      env.instance_exec(&compiled)
+      env._execute_oozby(&compiled)
     rescue StandardError, NoMethodError => err
       backtrace = $!.backtrace
       #backtrace = backtrace.select { |item| !item.include? __dir__ } unless backtrace.first.include? __dir__
-      backtrace.delete_if { |item| item.to_s =~ /(\.rb|\/oozby):/ } if @filter_errors
+      
+      if @filter_errors # and backtrace.index { |i| i.include? ".oozby:" } < 3
+        execute_oozby_idx = backtrace.index { |i| i.include? "in `_execute_oozby'" }
+        backtrace = backtrace[0...execute_oozby_idx] if execute_oozby_idx
+        backtrace.delete_if do |item|
+          filename = item.split(':').first
+          filename = File.realpath(filename)
+          filename.start_with? __dir__
+        end
+      end
       
       raise $!, $!.message, backtrace
     end
