@@ -8,6 +8,10 @@ class Oozby::Environment
     fragments: 0
   }
   
+  class << self
+    attr_accessor :active
+  end
+  
   def initialize(ooz: nil)
     @parent = ooz
     @ast = []
@@ -21,7 +25,7 @@ class Oozby::Environment
   end
   
   # create a new scope that inherits from this one, and capture syntax tree created
-  def _subscope &proc
+  def _subscope *args, &proc
     # capture instance variables
     capture = {}
     instance_variables.each { |key| capture[key] = self.instance_variable_get(key) }
@@ -31,7 +35,7 @@ class Oozby::Environment
     @one_time_modifier = nil
     @defaults = @defaults.dup
     @resolution = @resolution.dup
-    self.instance_eval &proc
+    proc[*args]
     syntax_tree = @ast
     
     # restore instance variables
@@ -45,9 +49,14 @@ class Oozby::Environment
     @ast.push(*code)
   end
   
+  # do we know of this method
+  def oozby_method_defined? name
+    @method_preprocessor.known?(name.to_sym) or !@preprocess or respond_to?(name)
+  end
+  
   def method_missing method_name, *args, **hash, &proc
     # unless we know of this method in OpenSCAD or the preprocessor, abort!
-    unless @method_preprocessor.known?(method_name) or !@preprocess
+    unless oozby_method_defined? method_name
       # grab a list of all known methods, suggest a guess to user
       known = @method_preprocessor.known
       known.push(*public_methods(false))
@@ -61,6 +70,10 @@ class Oozby::Environment
       return super # continue to raise the usual error and all that
     end
     
+    oozby_send_method method_name, *args, **hash, &proc
+  end
+  
+  def oozby_send_method method_name, *args, **hash, &proc
     if proc
       children = _subscope(&proc)
     else
@@ -207,6 +220,15 @@ class Oozby::Environment
     @ast.push(execute: !!execute, import: filename)
   end
   
+  # run some oozby code contained inside a proc
+  def _execute_oozby &code
+    previously = self.class.active
+    self.class.active = self
+    result = instance_exec(&code)
+    self.class.active = previously
+    return result
+  end
+  
   def _scan_methods_from_scad_file filename
     raise "OpenSCAD file #{filename} not found" unless File.exists? filename
     data = File.read(filename)
@@ -242,9 +264,19 @@ class Oozby::Environment
   # returns the abstract tree
   def _abstract_tree; @ast; end
   
+  # make backtraces clearer
   def inspect; "OozbyFile"; end
 end
 
-
-
+# module you can include in your classes to be able to make 3d shapes in them
+module Oozby::Geometry
+  def method_missing *args, &proc
+    environ = Oozby::Environment.active
+    if environ.oozby_method_defined?(args.first)
+      environ.oozby_send_method *args, &proc
+    else
+      super
+    end
+  end
+end
 
