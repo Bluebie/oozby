@@ -288,8 +288,8 @@ class Oozby::MethodPreprocessor
   def capture &proc
     env = @env
     (env._subscope {
-      preprocessor(false) {
-        env.instance_eval(&proc)
+      env.preprocessor(false) {
+        env._execute_oozby(&proc)
       }
     }).first    
   end
