@@ -1,0 +1,5 @@
+require './demo-class'
+
+battery = LiionBattery.new(18350, protected: true)
+puts "the battery is #{battery.width} wide"
+battery.part # place a 3d model of the battery in the oozby world
