@@ -139,8 +139,10 @@ class Oozby::MethodPreprocessor
         data = info.named_args.delete(d)
         if data.is_a? Range
           data = Range.new(data.first / 2.0, data.last / 2.0, data.exclude_end?)
+        elsif data.respond_to? :to_f
+          data = data.to_f / 2.0
         else
-          data = data / 2.0
+          raise "#{data.inspect} must be Numeric or a Range"
         end
         info.named_args[r] = data
       end
@@ -157,8 +159,10 @@ class Oozby::MethodPreprocessor
           circumradius = Range.new(inradius.first.to_f / @env.cos(180.0 / sides),
                            inradius.first.to_f / @env.cos(180.0 / sides),
                            inradius.exclude_end?)
-        else
+        elsif inradius.respond_to? :to_f
           circumradius = inradius.to_f / @env.cos(180.0 / sides)
+        else
+          raise "#{inradius.inspect} must be Numeric or a Range"
         end
         info.named_args[r] = circumradius
       end
@@ -282,9 +286,10 @@ class Oozby::MethodPreprocessor
   end
   
   def capture &proc
-    (@env._subscope {
+    env = @env
+    (env._subscope {
       preprocessor(false) {
-        instance_eval(&proc)
+        env.instance_eval(&proc)
       }
     }).first    
   end
