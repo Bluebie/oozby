@@ -12,15 +12,9 @@ resolution minimum: 0.5
 # Or maybe it can be improved by working on caching.
 
 # make a rounded rectangle with a border radius of 3mm
-square([20, 20], center: true, radius: 3)
+square([20, 20], center: true, corner_radius: 3)
 
 # make a rounded cube with border radius of 4mm
-translate(x: 20) > cube([10, 20, 30], center: true, radius: 4)
+translate(x: 20) > cube([10, 20, 30], center: true, corner_radius: 3)
 
-# make a hexagon with a circle removed from the middle with a 1mm wall
-translate(x: -25) > 
-difference do
-  hexagon(inner_radius: 10 + 1)
-  circle(radius: 10)
-end
-
+translate(x: -20) > cylinder(dia: 10..20, height: 30, cr: 3, center: true)
