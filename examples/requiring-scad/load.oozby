@@ -9,5 +9,4 @@ hexagonal_prism(radius: 10, height: 2, center: true)
 
 color('red')>
 scadish_thing()
-sin(5)
 
