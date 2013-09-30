@@ -2,41 +2,42 @@
 class Oozby::Element
   attr_reader :data, :siblings
   
-  def initialize hash, parent_array
+  def initialize hash
     @data = hash
-    @siblings = parent_array
+    @siblings = nil #parent_array
   end
   
   # include the next thing as a child of this thing
   def > other
-    if other.respond_to? :to_oozby_element
-      other = [other]
-    elsif not other.is_a?(Array) or other.any? { |item| not item.respond_to? :to_oozby_element }
-      raise "Can only use > combiner to add Oozby::Element or array of Elements"
-    end
-    
-    # convert all items to real Oozby Elements
-    other = other.map { |item| item.to_oozby_element }
-    
-    # add others as children
-    children.push *(other.map { |item| item.data })
-    
-    # remove children from their previous parents
-    other.each do |thing|
-      thing.siblings = children
-    end
-    
-    other.first
+    raise "Can only combine an Oozby::Element to another Oozby::Element" unless other.respond_to? :to_oozby_element
+    other.to_oozby_element.abduct self.children
+    other
+  end
+  
+  # add this element to the end of supplied array
+  def abduct into
+    @siblings.delete self if @siblings # remove from current location
+    @siblings = into # our new location is here
+    into.push self # append ourselves to the new parent
   end
   
   def index
-    @siblings.index(@data)
+    @siblings.index(self)
   end
   
-  def siblings= new_parent
-    @siblings.delete @data
-    @siblings = new_parent
-  end
+  # def siblings= new_parent
+  #   @siblings.delete self
+  #   @siblings = new_parent
+  # end
+  
+  # replace this element with any number of other elements and hashes
+  # def replace *others
+  #   raise "Can't replace Oozby::Element with things that aren't hash-like" unless others.all? { |x| x.respond_to? :to_h }
+  #   puts "Replacing: #{self} with [#{others.join('; ')}]"
+  #   idx = self.index
+  #   others.each { |x| x.siblings = @siblings if x.respond_to? :siblings= }
+  #   @siblings[idx..idx] = others
+  # end
   
   [:children, :modifier, :method, :args, :named_args].each do |hash_accessor_name|
     define_method(hash_accessor_name) { @data[hash_accessor_name] }
@@ -49,6 +50,16 @@ class Oozby::Element
     else
       super
     end
+  end
+  
+  def to_s
+    x = args.map { |x| x.inspect }
+    named_args.each { |name, value| x.push "#{name}: #{value.inspect}"}
+    "#{method}(#{x.join(', ')})"
+  end
+  
+  def to_h
+    @data
   end
   
   def to_oozby_element

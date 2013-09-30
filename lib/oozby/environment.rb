@@ -80,19 +80,17 @@ class Oozby::Environment
       children = []
     end
     
-    call = {
+    element = Oozby::Element.new({
       method: method_name,
       args: args, named_args: hash,
       children: children, 
       modifier: @one_time_modifier || @modifier,
       call_address: @ast.length
-    }
+    })
     
-    @ast.push(comment: "oozby code: " + JSON.generate(call)) if @parent.debug
-    
-    @ast.push call
-    element = Oozby::Element.new(call, @ast)
-    @method_preprocessor.transform_call(element) if @preprocess
+    @ast.push(comment: "oozby: #{element}") if @parent.debug
+    element = @method_preprocessor.transform_call(element) if @preprocess
+    element.abduct @ast
     @one_time_modifier = nil
     
     return element
