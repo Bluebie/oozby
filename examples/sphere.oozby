@@ -9,5 +9,3 @@ translate(x: 40) { sphere diameter: 10 }
 
 # and for short
 translate(x: 60) { sphere dia: 10 }
-
-## Diameter option works only for internal functions listed in the oozby dictionary as accepting radius
