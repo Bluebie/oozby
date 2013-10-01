@@ -1,20 +1,13 @@
 #!/usr/bin/env ruby
-require 'thor'
-require 'listen'
-require 'pp'
-require 'rbconfig'
+require 'thor' # command line utility utility
+require 'listen' # listen to filesystem for changes in a smart way
+require 'pp' # pretty printer
+require 'rbconfig' # to get path to ruby binary, for making subprocesses
+require 'colored' # ANSI colouring
 require File.join(__dir__, '..', 'lib', 'oozby')
 
-# motivational exit messages!
-$quit_message = {
-  '0.3.0' => "Have a nice day!",
-  '0.3.1' => "You're a superstar!",
-  '0.3.2' => "Keep up the great work!",
-  '0.3.3' => "Nice job!",
-  '0.3.4' => "It was a pleasure working with you!"
-}
-
 class OozbyUtility < Thor
+  QuitMessage = "All done! ^_^"
   desc "compile some#{File::SEPARATOR}folder", "The Oozby Utility searches a directory and compiles all the .oozby files it finds, creating identically named files with .scad stuck on the end, translated in to OpenSCAD nonsense. Open those files in OpenSCAD app and enable Automatic Reload and Compile in the Design menu, then get to work."
   
   option :verbose, type: :boolean, desc: "Output lots of gunk, to figure out bizarre bugs in Oozby"
@@ -39,10 +32,11 @@ class OozbyUtility < Thor
           handle.write ooz.render
         end
         
-        puts "compiled #{File.basename(path)}"
+        print "[#{Time.now.strftime "%H:%M:%S"}] "
+        puts "Compiled #{File.basename(path).underline}".green
       rescue StandardError, ScriptError, NoMethodError => err
         local_pwd = Dir.pwd
-        puts "#{err.class.name}: #{err.message.sub(local_pwd + File::SEPARATOR, '')}"
+        puts "#{err.class.name.reversed}: #{err.message.sub(local_pwd + File::SEPARATOR, '').red}"
         err.backtrace.each { |line| puts line.sub(local_pwd + File::SEPARATOR, '') }
         puts nil, nil
       end
@@ -60,7 +54,7 @@ class OozbyUtility < Thor
           subprocess_compile File.join(*args)
         end
         
-        puts "Watching folder for changes... (CTRL+C to exit)"
+        puts "Watching folder for changes...".blue + " (" + "CTRL+C".bold + " to exit)"
         Listen.to! directory, filter: /\.oozby$/ do |modified, added, removed|
           modified.each { |path| recompile_handler[path] }
           added.each { |path| recompile_handler[path] }
@@ -68,7 +62,7 @@ class OozbyUtility < Thor
             puts "#{File.basename(path)} deleted."
             if File.exists? "#{path}.scad"
               File.delete("#{path}.scad")
-              puts "Deleted generated .scad file for obsolete #{File.basename(path)}"
+              puts "Deleted #{(File.basename(path) + '.scad').underline}".green
             end
           end
         end
@@ -76,7 +70,7 @@ class OozbyUtility < Thor
     end
   rescue Interrupt => e
     puts ""
-    puts $quit_message[Oozby.version] || $quit_message.values.last
+    puts QuitMessage.blue
   end
   
   private
