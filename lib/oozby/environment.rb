@@ -20,7 +20,7 @@ class Oozby::Environment
     @modifier = nil
     @one_time_modifier = nil
     @preprocess = true
-    @method_preprocessor = Oozby::MethodPreprocessor.new(env: self, ooz: @parent)
+    @method_preprocessor = Oozby::Preprocessor.new(env: self, ooz: @parent)
     @scanned_scad_files = []
   end
   
