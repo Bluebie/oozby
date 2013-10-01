@@ -19,5 +19,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'thor', '>= 0.18.1' # cli stuff for command line app
   s.add_dependency 'amatch', '>= 0.2.11' # string comparison tools for "Did you mean x()?" compiler suggestions
   #s.add_dependency 'colorist', '>= 0.0.2' # parses html style colours. Maybe should add this to 'color' function?
-  #s.add_dependency 'colored', '>= 1.2' # colorize terminal output. Maybe use this to make oozby cli program more fabulous?
+  s.add_dependency 'colored', '>= 1.2' # colorize terminal output. Maybe use this to make oozby cli program more fabulous?
 end
