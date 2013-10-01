@@ -266,7 +266,7 @@ class Oozby::Preprocessor
   def rounded_cylinder h: 1, r1: 1, r2: 1, center: false, corner_radius: 0
     radii = [r1, r2]
     raise "corner_radius is too big. Max is #{radii.min} for this cylinder" if corner_radius > radii.min
-    corner_diameter = corner_radius * 2.0
+    corner_diameter = corner_radius * 2
     
     preprocessor = self
     # use rounded rect to create the body shape
@@ -274,23 +274,23 @@ class Oozby::Preprocessor
       facets = preprocessor.call.named_args[:"$fn"] || _fragments_for(radius: radii.min)
       
       translate([0,0, if center then -h / 2.0 else 0 end]) >
+      #union do
       rotate_extrude(:"$fn" => facets) do
-        # cut our a section to rotate extrude in to cylinder
-        intersection do
-          # square cut out
-          square([r1 * 2, h * 2])
-          # minkowski combine 2d tapering cylinder cut shape, with a circle
-          minkowski do
-            # cylinder shape, inset by corner_radius amount
-            polygon([
-              [0,corner_radius],
-              [r1 - corner_radius, corner_radius],
-              [r2 - corner_radius, h - corner_radius],
-              [0, h - corner_radius]
-            ])
-            # circle to fill in
-            circle(r: corner_radius, :"$fn" => facets)
-          end
+        hull do
+          # table to calculate radii at in between y positions
+          table = { 0.0 => r1, h.to_f => r2 }
+          # offset taking in to account angle of wall, as the line between each
+          # circle after the hull operation will not be from exactly corner_radius
+          # height when the side angle is not 90deg
+          lookup_offset = corner_radius * sin(atan2(r2-r1, h) / 2.0)
+          # bottom right corner
+          translate([lookup(corner_radius + lookup_offset, table) - corner_radius, h - corner_radius]) >
+          circle(r: corner_radius, :"$fn" => facets)
+          # top right corner
+          translate([lookup(h - corner_radius + lookup_offset, table) - corner_radius, corner_radius]) >
+          circle(r: corner_radius, :"$fn" => facets)
+          # center point
+          square([radii.min - corner_radius, h])
         end
       end
     end
