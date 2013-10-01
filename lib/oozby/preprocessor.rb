@@ -22,14 +22,24 @@ class Oozby::Preprocessor
     
     # detect a method def, store it's filters and reset for next def
     def method_added method_name
-      passthrough method_name
+      finalize_filter method_name
       super
     end
     
-    # don't want to define a primary processor method? pass it through manually
-    def passthrough method_name
+    # def passthrough method_name
+    #   @@method_filters[method_name] = @@queued_filters
+    #   @@queued_filters = @@default_filters.dup
+    # end
+    
+    def finalize_filter method_name
       @@method_filters[method_name] = @@queued_filters
       @@queued_filters = @@default_filters.dup
+    end
+    
+    # don't want to define a primary processor method? pass it through manually
+    def passthrough method_name, *arg_names
+      arg_list = arg_names.map { |x| "#{x}: nil" }.join(', ')
+      define_method method_name, &eval("->(#{arg_list}) {nil}")
     end
     
     # get list of filters for a method name
@@ -40,10 +50,11 @@ class Oozby::Preprocessor
     # alias an name to an openscad method optionally with extra defaults
     # useful for giving things more descriptive names, where those names imply
     # different defaults, like hexagon -> circle(sides: 6)
-    def oozby_alias from, to, extra_args = {}
+    def oozby_alias from, to, **extra_args
       define_method(from) do
-        call.named_args.merge!(extra_args) { |key,l,r| l } # left op wins conflicts
-        redirect(to)
+        call.named_args.merge!(extra_args) #{ |key,l,r| l } # left op wins conflicts
+        run_filters to
+        redirect to
       end
     end
   end
@@ -74,18 +85,13 @@ class Oozby::Preprocessor
     @call = call_info
     original_method = @call.method
     
-    # apply the other filters
-    filters = self.class.filters_for(call_info.method)
-    filters.each do |filter_data|
-      filter_name, *filter_args = filter_data
-      send(filter_name, *filter_args)
-    end
+    run_filters call_info.method.to_sym
     
     methods = primary_processors
     # if a primary processor is defined for this kind of call
     if methods.include? call_info.method.to_sym
       # call the primary processor
-      result = public_send(call_info.method, *primary_method_args(call_info.method))
+      result = public_send(call_info.method, *primary_method_args)
       
       # replace the ast content with the processor's output
       if result.is_a? Hash or result.is_a? Oozby::Element
@@ -99,10 +105,19 @@ class Oozby::Preprocessor
     return call_info
   end
   
+  def run_filters method_name
+    # apply the other filters
+    filters = self.class.filters_for(method_name)
+    filters.each do |filter_data|
+      filter_name, *filter_args = filter_data
+      send(filter_name, *filter_args)
+    end
+  end
+  
   # generates argument list to call a primary method processor
-  def primary_method_args(method) # :nodoc:
+  def primary_method_args # :nodoc:
     # grab the primary processor
-    primary = self.class.public_instance_method(method.to_sym)
+    primary = self.class.public_instance_method(call.method.to_sym)
     params = primary.parameters
     # parse the processor method's signature
     param_names = params.select { |x| x.first == :key }.map { |x| x[1] }
@@ -136,7 +151,7 @@ class Oozby::Preprocessor
   # rewrite this method to a different method name and primary processor and whatever else
   def redirect new_method
     call.method = new_method.to_sym
-    public_send(new_method, *primary_method_args(call.method)) if self.respond_to? new_method
+    public_send(new_method, *primary_method_args) if self.respond_to? new_method
   end
   
   

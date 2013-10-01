@@ -17,4 +17,4 @@ square([20, 20], center: true, corner_radius: 3)
 # make a rounded cube with border radius of 4mm
 translate(x: 20) > cube([10, 20, 30], center: true, corner_radius: 3)
 
-translate(x: -20) > cylinder(dia: 10..20, height: 30, cr: 3, center: true)
+translate(x: -20) > cylinder(dia: 10..20, height: 30, corner_radius: 3, center: true)

@@ -21,6 +21,7 @@ class Oozby::Preprocessor
   # detect requests for rounded cubes and transfer them over
   filter :xyz, depth: true, default: 1 # cube has xy coords
   filter :rename_args, [:r, :cr, :corner_r] => :corner_radius
+  filter :validate, size: [Array, Numeric], center: [true, false], corner_radius: Numeric
   def cube size: [1,1,1], center: false, corner_radius: 0
     return rounded_rectangular_prism(size: size, center: center, corner_radius: corner_radius) if corner_radius > 0
     return call
@@ -29,6 +30,7 @@ class Oozby::Preprocessor
   
   # detect requests for rounded cylinders and transfer them over
   filter :rename_args, [:cr, :corner_r] => :corner_radius
+  filter :validate, h: Numeric, r1: [Numeric, nil], r2: [Numeric, nil], r: [Numeric, nil], center: [true, false], corner_radius: Numeric
   def cylinder h: 1, r1: nil, r2: nil, r: nil, center: false, corner_radius: 0
     r1, r2 = r, r if r unless r1 || r2
     return rounded_cylinder(h: h, r1: r1, r2: r2, center: center, corner_radius: corner_radius) if corner_radius > 0
@@ -43,6 +45,7 @@ class Oozby::Preprocessor
   # detect requests for rounded squares and transfer them over
   filter :xyz, arg: :size, depth: false, default: 1 # square has xy coords
   filter :rename_args, [:r, :cr, :corner_r] => :corner_radius
+  filter :validate, size: [Array, Numeric], center: [true, false], corner_radius: Numeric
   def square size: [1,1], center: false, corner_radius: 0
     return rounded_rectangle(size: size, center: center, corner_radius: corner_radius) if corner_radius > 0
     return call
@@ -135,13 +138,15 @@ class Oozby::Preprocessor
     end
   end
   
-  # layout defaults like {center: true}
+  # filter to patch in layout defaults like center: true when not specified
+  # explicitly in this call
   def layout_defaults
     # copy in defaults if not already specified
     call.named_args.merge!(@env.defaults) { |k,a,b| a }
   end
   
   # filter to rename certain arguments to other things
+  # Usage> filter :rename_args, :old_arg => :new_arg, :other => morer
   def rename_args pairs
     pairs.each do |from_keys, to_key|
       from_keys = [from_keys] unless from_keys.is_a? Array
@@ -193,9 +198,10 @@ class Oozby::Preprocessor
     # process 'inner radius' bits
     { ir: :r, ir1: :r1, ir2: :r2 }.each do |ir, r|
       if call.named_args.key? ir
-        sides = call.named_args[:"$fn"].to_i
-        raise "Use of inner radius requires sides/facets/fragments argument to #{info.method}()" unless sides
-        raise "Sides must be at least 3" unless sides >= 3
+        sides = call.named_args[:"$fn"]
+        raise "Use of inner_radius requires sides/facets/fragments argument to #{call.method}()" unless sides.is_a? Numeric
+        raise "sides/facets/fragments argument must be a whole number (Fixnum)" unless sides.is_a? Fixnum
+        raise "sides/facets/fragments argument must be at least 3 #{call} to use inner_radius" unless sides >= 3
         inradius = call.named_args.delete(ir)
         if inradius.is_a? Range
           circumradius = Range.new(inradius.first.to_f / @env.cos(180.0 / sides),
@@ -218,9 +224,22 @@ class Oozby::Preprocessor
     end
   end
   
+  # filter calls to a method, transforming x, y, and optionally z arguments in
+  # to a 2 or 3 item array, setting it to the argument named 'arg' or setting
+  # it as the first numerically indexed argument if that is unspecified. A
+  # default value can be supplied.
+  # Usage> filter :xyz, default: 1, arg: :size, depth: false
   def xyz default: 0, arg: false, depth: true
     if [:x, :y, :z].any? { |name| call.named_args.include? name }
-      [:x, :y, :z].each { |key| raise "#{key} must be Numeric, value #{call.named_args[key].inspect} is not." unless call.named_args[key].is_a? Numeric }
+      # validate args
+      [:x, :y, :z].each do |key|
+        if call.named_args.has_key? key
+          unless call.named_args[key].is_a? Numeric
+            raise "#{key} must be Numeric, value #{call.named_args[key].inspect} is not."
+          end
+        end
+      end
+      
       coords = [call.named_args.delete(:x), call.named_args.delete(:y)]
       coords.push call.named_args.delete(:z) if depth
       coords.map! { |x| x or default } # apply default value to missing data
@@ -231,6 +250,34 @@ class Oozby::Preprocessor
       else
         call.args.unshift coords
       end
+    end
+  end
+  
+  
+  # simple validator to check particular named arguments conform to required types
+  # or exactly match a set of values
+  # Usage> filter :validate, argument_name: Symbol, other_argument: ["yes", "no"], radius: [Numeric, Range]
+  def validate args = {}
+    args.keys.each do |args_keys|
+      acceptable = if args[args_keys].respond_to? :each then args[args_keys] else [args[args_keys]] end
+      key_list = if args_keys.respond_to? :each then args_keys else [args_keys] end
+      key_list.each do |key|
+        # for this key, check it matches acceptable list, if specified
+        if call.named_args.keys.include? key
+          value = call.named_args[key]
+          if acceptable.none? { |accepts| accepts === value }
+            raise "#{call.method}'s argument #{key} must be #{acceptable.inspect}"
+          end
+        end
+      end
+    end
+  end
+  
+  # require certain arguments be specified to a processed method
+  # Usage> filter :require_args, :first_arg, :second_arg
+  def require_args *list
+    list.each do |name|
+      raise "#{call.method} requires argument #{name}" unless call.named_args.keys.include? name
     end
   end
   
