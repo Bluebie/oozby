@@ -19,7 +19,7 @@ class Oozby::Preprocessor
   default_filters :resolution, :layout_defaults, :expanded_names
   
   # detect requests for rounded cubes and transfer them over
-  filter :xyz, depth: true # cube has xy coords
+  filter :xyz, depth: true, default: 1 # cube has xy coords
   filter :rename_args, [:r, :cr, :corner_r] => :corner_radius
   def cube size: [1,1,1], center: false, corner_radius: 0
     return rounded_rectangular_prism(size: size, center: center, corner_radius: corner_radius) if corner_radius > 0
@@ -41,7 +41,7 @@ class Oozby::Preprocessor
   # 2d shapes
   
   # detect requests for rounded squares and transfer them over
-  filter :xyz, arg: :size, depth: false # square has xy coords
+  filter :xyz, arg: :size, depth: false, default: 1 # square has xy coords
   filter :rename_args, [:r, :cr, :corner_r] => :corner_radius
   def square size: [1,1], center: false, corner_radius: 0
     return rounded_rectangle(size: size, center: center, corner_radius: corner_radius) if corner_radius > 0
@@ -220,6 +220,7 @@ class Oozby::Preprocessor
   
   def xyz default: 0, arg: false, depth: true
     if [:x, :y, :z].any? { |name| call.named_args.include? name }
+      [:x, :y, :z].each { |key| raise "#{key} must be Numeric, value #{call.named_args[key].inspect} is not." unless call.named_args[key].is_a? Numeric }
       coords = [call.named_args.delete(:x), call.named_args.delete(:y)]
       coords.push call.named_args.delete(:z) if depth
       coords.map! { |x| x or default } # apply default value to missing data
@@ -300,7 +301,7 @@ class Oozby::Preprocessor
   def rounded_rectangular_prism size: [1,1,1], center: false, corner_radius: 0, facets: nil
     size = [size] * 3 if size.is_a? Numeric
     size = [size[0] || 1, size[1] || 1, size[2] || 1]
-    raise "Radius is too big. Max #{size.min / 2.0} for this square" if corner_radius * 2.0 > size.min
+    raise "Radius is too big. Max #{size.min / 2.0} for this cube" if corner_radius * 2.0 > size.min
     corner_diameter = corner_radius.to_f * 2.0
 
     preprocessor = self
