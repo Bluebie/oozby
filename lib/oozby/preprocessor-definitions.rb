@@ -51,7 +51,9 @@ class Oozby::Preprocessor
     return call
   end
   
+  filter :refuse_args, :h
   passthrough :circle
+  filter :refuse_args, :h
   passthrough :polygon
   # extrude 2d shapes to 3d shapes
   filter :expanded_names, height_label: :height
@@ -171,6 +173,7 @@ class Oozby::Preprocessor
       [:radius2, :radius_2] => :r2,
       [:facets, :fragments, :sides] => :"$fn",
       [:inr, :inradius, :in_radius, :inner_r, :inner_radius] => :ir,
+      [:width] => :diameter,
       [:height, :h] => height_label
     )
     
@@ -266,7 +269,7 @@ class Oozby::Preprocessor
         if call.named_args.keys.include? key
           value = call.named_args[key]
           if acceptable.none? { |accepts| accepts === value }
-            raise "#{call.method}'s argument #{key} must be #{acceptable.inspect}"
+            raise "#{@original_method}'s argument #{key} must be #{acceptable.inspect}"
           end
         end
       end
@@ -277,10 +280,17 @@ class Oozby::Preprocessor
   # Usage> filter :require_args, :first_arg, :second_arg
   def require_args *list
     list.each do |name|
-      raise "#{call.method} requires argument #{name}" unless call.named_args.keys.include? name
+      raise "#{@original_method} requires argument #{name}" unless call.named_args.keys.include? name
     end
   end
   
+  # ban a list of arguments, to highlight mistakes like passing height to circle
+  # Usage> filter :refuse_args, :h
+  def refuse_args *list
+    list.each do |name|
+      raise "#{@original_method} doesn't support #{name}" if call.named_args.keys.include? name
+    end
+  end
   
   def rounded_rectangle size: [1,1], center: false, corner_radius: 0.0, facets: nil
     size = [size] * 2 if size.is_a? Numeric

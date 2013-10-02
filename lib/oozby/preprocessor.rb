@@ -78,7 +78,7 @@ class Oozby::Preprocessor
   def transform_call call_info
     raise "call info isn't Oozby::Element #{call_info.inspect}" unless call_info.is_a? Oozby::Element
     @call = call_info
-    original_method = @call.method
+    @original_method = @call.method
     
     run_filters call_info.method.to_sym
     
@@ -93,7 +93,7 @@ class Oozby::Preprocessor
         # replace called item with this new stuff
         return result
       elsif result != nil # ignore nil - we don't need to do anything for that!
-        raise "#{original_method} preprocessor returned invalid result #{result.inspect}"
+        raise "#{@original_method} preprocessor returned invalid result #{result.inspect}"
       end
     end
     
