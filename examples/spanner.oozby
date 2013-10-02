@@ -1,0 +1,28 @@
+nut = 8.0 # nut was 7.85mm across on my callipers
+
+resolution minimum: 0.5 # smoother quality
+
+# set the default origin to center, not corner
+defaults(center: true) do
+  # boolean operation:
+  difference do
+    # combine these two shapes first
+    union do
+      # make the round spanner tool shape, with
+      # corner_radius rounding
+      cylinder(height: 5, diameter: nut * 2, cr: 1.5)
+      # add a handle
+      translate(x: -50 / 2) >
+      cube(x: 50, y: nut, z: 5, corner_radius: 2)
+    end
+    # and remove the rest from it:
+    # wrap two hexagons together to make elongated shape
+    hull do
+      hexagonal_prism(inner_diameter: nut, height: 10)
+      # the greater than operator is a shortcut for
+      # do/end block containing next thing after it
+      translate(x: nut * 2) > # shift over a bit
+      hexagonal_prism(id: nut, h: 10) # h == height
+    end
+  end
+end
