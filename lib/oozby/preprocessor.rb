@@ -26,11 +26,6 @@ class Oozby::Preprocessor
       super
     end
     
-    # def passthrough method_name
-    #   @@method_filters[method_name] = @@queued_filters
-    #   @@queued_filters = @@default_filters.dup
-    # end
-    
     def finalize_filter method_name
       @@method_filters[method_name] = @@queued_filters
       @@queued_filters = @@default_filters.dup
@@ -173,7 +168,11 @@ class Oozby::Preprocessor
       env.preprocessor(false) {
         env._execute_oozby(&proc)
       }
-    }).find { |x| x.is_a? Oozby::Element }
+    }).find { |x|
+      x.is_a? Oozby::Element
+    }.tap { |x|
+      x.modifier = "#{call.modifier}#{x.modifier}" if call.modifier
+    }
   end
   
   # remember list of public methods defined so far - these are system ones
