@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>oozby =&gt; physical objects in ruby</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="styles.css">
+<meta name="viewport" content="width=450">
+</head>
+<body lang="en">
+  <header><h1>oozby</h1>
+    <h2>
+<span style="color:#d44d52">openscad</span>
+      <span style="color:#70bfb1">+</span>
+      <span style="color:#d44d52">ruby</span>
+      <span style="color:#70bfb1">==</span>
+      <span style="color:#4992d9">:awesome</span>
+</h2>
+  </header><div class="content">
+<p>OpenSCAD is a neat free tool which compiles programs in it's own language to solid 2D or 3D vector shapes suitable for 3D printers and CNCs. Just one hitch - the language is horrible! There are all sorts of wacky constructs like things they call variables which can't vary their values, and an odd but kinda funky calling convention where named arguments can also be left unnamed if you get the order of the arguments right, which is impossible sometimes because openscad had different ordering in different versions!</p>
+
+<p>Simple things like making a cube with rounded corners are difficult to make with precision and often unusably slow to compute. It's necessary to have the OpenSCAD manual at hand to lookup argument names and data formats. Small bugs in your program will often not cause any useful error messages in OpenSCAD - instead it will compute gibberish, or nothing at all, or even segfault!</p>
+
+<p><a href="https://github.com/Bluebie/oozby">Oozby</a> is my little fix to make OpenSCAD funner. It gives you all the power of OpenSCAD with the lovely syntax of Ruby. Oozby validates your code to help catch errors before they get to OpenSCAD and give useful feedback saving hours in debugging. Oozby patches in a bunch of extra features, like primitives with rounded corners (squares, cubes, cylinders). Oozby tries to understand your intent, so you don't need a cheat sheet to look up precise names for arguments or methods, but if you get something wrong, it'll try and help you. If you call an unknown method, oozby will suggest if it knows of one with a similar name.</p>
+
+<p>Oozby will figure out that <span class="CodeRay">cylinder()</span> takes <span class="CodeRay"><span class="key">r</span>:</span>, not <span class="CodeRay"><span class="key">radius</span>:</span> and rename it. Or maybe you specified a <span class="CodeRay"><span class="key">diameter</span>:</span> oozby halved it for you before renaming it to <span class="CodeRay"><span class="key">r</span>:</span>. Maybe you want a cube with rounded off corners? Oozby saw you passed a <span class="CodeRay"><span class="key">corner_radius</span>:</span> argument to <span class="CodeRay">cube(<span class="float">5.0</span>, <span class="key">corner_radius</span>: <span class="float">1.0</span>)</span> and automatically output the dozens of OpenSCAD instructions required to make the exact cube you asked for. Oozby constructed that rounded cube using the most optimized OpenSCAD instructions I've yet found, so your model compiles in seconds instead of minutes.</p>
+
+<p>So you can see what oozby code looks like, lets make a spanner for some M5 nuts I found at a dollar shop. First I measured the nut diameter, then made a little oozby program. As I wrote the file, the oozby command line app watched my changes, and each time I saved the .oozby file it compiled a .scad file which OpenSCAD automatically reloaded, so I could always see what I was building with the 3D view in OpenSCAD.</p>
+
+<p><img src="assets/nut-measurement.jpg" alt="Picture of nut being measured as 7.83 millimetres side to side (inradius) using grey metal callipers"></p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+<a href="#n8" name="n8">8</a>
+<a href="#n9" name="n9">9</a>
+<strong><a href="#n10" name="n10">10</a></strong>
+<a href="#n11" name="n11">11</a>
+<a href="#n12" name="n12">12</a>
+<a href="#n13" name="n13">13</a>
+<a href="#n14" name="n14">14</a>
+<a href="#n15" name="n15">15</a>
+<a href="#n16" name="n16">16</a>
+<a href="#n17" name="n17">17</a>
+<a href="#n18" name="n18">18</a>
+<a href="#n19" name="n19">19</a>
+<strong><a href="#n20" name="n20">20</a></strong>
+<a href="#n21" name="n21">21</a>
+<a href="#n22" name="n22">22</a>
+<a href="#n23" name="n23">23</a>
+<a href="#n24" name="n24">24</a>
+<a href="#n25" name="n25">25</a>
+<a href="#n26" name="n26">26</a>
+<a href="#n27" name="n27">27</a>
+<a href="#n28" name="n28">28</a>
+</pre></td>
+  <td class="code"><pre>nut = <span class="float">8.0</span> <span class="comment"># nut was 7.83mm across on my callipers</span>
+
+resolution <span class="key">minimum</span>: <span class="float">0.5</span> <span class="comment"># smoother quality</span>
+
+<span class="comment"># set the default origin to center, not corner</span>
+defaults(<span class="key">center</span>: <span class="predefined-constant">true</span>) <span class="keyword">do</span>
+  <span class="comment"># boolean operation:</span>
+  difference <span class="keyword">do</span>
+    <span class="comment"># combine these two shapes first</span>
+    union <span class="keyword">do</span>
+      <span class="comment"># make the round spanner tool shape, with</span>
+      <span class="comment"># corner_radius rounding</span>
+      cylinder(<span class="key">height</span>: <span class="integer">5</span>, <span class="key">diameter</span>: nut * <span class="integer">2</span>, <span class="key">cr</span>: <span class="float">1.5</span>)
+      <span class="comment"># add a handle</span>
+      translate(<span class="key">x</span>: <span class="integer">-50</span> / <span class="integer">2</span>) &gt;
+      cube(<span class="key">x</span>: <span class="integer">50</span>, <span class="key">y</span>: nut, <span class="key">z</span>: <span class="integer">5</span>, <span class="key">corner_radius</span>: <span class="integer">2</span>)
+    <span class="keyword">end</span>
+    <span class="comment"># and remove the rest from it:</span>
+    hull <span class="keyword">do</span> <span class="comment"># hull combines these two like shrink wrap</span>
+      <span class="comment"># making a nice elongated shape to cut out</span>
+      hexagonal_prism(<span class="key">inner_diameter</span>: nut, <span class="key">height</span>: <span class="integer">10</span>)
+      <span class="comment"># the greater than operator is a shortcut for</span>
+      <span class="comment"># do/end block containing next thing after it</span>
+      translate(<span class="key">x</span>: nut * <span class="integer">2</span>) &gt; <span class="comment"># shift over a bit</span>
+      hexagonal_prism(<span class="key">id</span>: nut, <span class="key">h</span>: <span class="integer">10</span>) <span class="comment"># h == height</span>
+    <span class="keyword">end</span>
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre></td>
+</tr></table>
+<p><img src="assets/spanner-render.png" alt="3D rendered spanner, yellow and green on pale yellow background"></p>
+
+<p>When I was done I asked OpenSCAD to render it, so I could save an STL file and 3D Print out my new spanner. It took 32 seconds to compute the final render, even with all the nicely rounded off shapes.</p>
+
+<p>Some more in depth documentation for oozby will come in the future most likely. If you play with it give me a buzz on <a href="https://twitter.com/Bluebie">twitter</a> or <a href="https://github.com/Bluebie/oozby/issues">github</a> if you have any feedback!</p>
+</div>
+</body>
+</html>
