@@ -89,6 +89,11 @@ header h2, .content h3, .content h4 {
 .content h4 {
   font-size: 14px;
 }
+.content hr {
+  border: 0 none transparent;
+  border-top: 1px dashed #ccc;
+  margin: 2em 0;
+}
 
 @media only screen and (max-width: 500px) {
   header h2 { font-size: 33px; }

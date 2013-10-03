@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>oozby =&gt; physical objects in ruby</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="styles.css">
+<meta name="viewport" content="width=450">
+</head>
+<body lang="en">
+  <header><h1>oozby</h1>
+    <h2>
+<span style="color:#d44d52">openscad</span>
+      <span style="color:#70bfb1">+</span>
+      <span style="color:#d44d52">ruby</span>
+      <span style="color:#70bfb1">==</span>
+      <span style="color:#4992d9">:awesome</span>
+</h2>
+  </header><div class="content">
+<h3 id="1iz6nbg">Primitive Shapes</h3>
+
+<p>Oozby supports the core 2D and 3D primitive shapes from OpenSCAD with some extra features, and adds some extras primitives as well. There are a few important abbreviations:</p>
+
+<ul>
+<li>
+<span class="CodeRay"><span class="key">radius</span>:</span> &lt;-&gt; <span class="CodeRay"><span class="key">r</span>:</span>
+</li>
+<li>
+<span class="CodeRay"><span class="key">radius</span>: a..b</span> &lt;-&gt; <span class="CodeRay"><span class="key">radius_1</span>: a, <span class="key">radius_2</span>: b</span>
+</li>
+<li>
+<span class="CodeRay"><span class="key">diameter</span>: a</span> &lt;-&gt; <span class="CodeRay"><span class="key">radius</span>: a / <span class="float">2.0</span></span>
+</li>
+<li>
+<span class="CodeRay"><span class="key">corner_radius</span>:</span> &lt;-&gt; <span class="CodeRay"><span class="key">cr</span>:</span> and where possible also <span class="CodeRay"><span class="key">r</span>:</span> and <span class="CodeRay"><span class="key">radius</span>:</span>
+</li>
+<li>
+<span class="CodeRay"><span class="key">inner_radius</span>:</span> &lt;-&gt; <span class="CodeRay"><span class="key">inradius</span>:</span> or <span class="CodeRay"><span class="key">ir</span>:</span>, and the diameter/d varients</li>
+</ul>
+<hr>
+<h4 id="1o0y7jp">2D: <span class="CodeRay">circle(<span class="key">radius</span>: <span class="float">5.0</span>)</span>
+</h4>
+
+<p><span class="CodeRay">circle()</span> creates a regular 2d circle with requested radius or diameter. If sides is specified it overrides the <span class="CodeRay">fragments</span> option in your resolution settings. Circle is always positioned by it's middle point.</p>
+
+<hr>
+<h4 id="1btxhun">2D: <span class="CodeRay">square(<span class="float">5.0</span>)</span>
+</h4>
+
+<h4 id="1w7hzne">2D: <span class="CodeRay">square([<span class="float">5.0</span>, <span class="float">10.0</span>])</span>
+</h4>
+
+<h4 id="qn8e03">2D: <span class="CodeRay">square(<span class="key">x</span>: <span class="float">5.0</span>, <span class="key">y</span>: <span class="float">10.0</span>)</span>
+</h4>
+
+<p><span class="CodeRay">square()</span> create a square or rectangle. The first calling style creates a square with sides that many millimeters across. In the second and third styles X and Y coordinates are specified, creating a rectangle. You can optionally pass <span class="CodeRay"><span class="key">corner_radius</span>:</span> and <span class="CodeRay"><span class="key">center</span>:</span> arguments
+<span class="CodeRay">
+square(<span class="integer">5</span>) <span class="comment"># make a 2d square with 5mm sides</span>
+square(<span class="integer">5</span>, <span class="key">cr</span>: <span class="float">1.5</span>) <span class="comment"># same as above, but corners rounded off at 1.5mm</span>
+square(<span class="key">x</span>: <span class="integer">5</span>, <span class="key">y</span>: <span class="integer">10</span>) <span class="comment"># make a rectange</span>
+</span></p>
+
+<p><span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> will position the square/rectangle by it's midpoint. When center is false or unspecified the origin of the square is the bottom left corner where x and y are their lowest values. <span class="CodeRay"><span class="key">corner_radius</span>:</span> rounds off the corners of the square for a smoother feel.</p>
+
+<hr>
+<h4 id="1w8msre">2D: <span class="CodeRay">ngon(<span class="key">radius</span>: <span class="float">10.0</span>, <span class="key">sides</span>: <span class="integer">5</span>)</span>
+</h4>
+
+<h4 id="uyzjv2">2D: <span class="CodeRay">ngon(<span class="key">inner_radius</span>: <span class="integer">5</span>, <span class="key">sides</span>: <span class="integer">8</span>)</span>
+</h4>
+
+<h4 id="1i2du6c">2D: <span class="CodeRay">hexagon(<span class="key">radius</span>: <span class="float">10.0</span>)</span>
+</h4>
+
+<p><span class="CodeRay">ngon()</span> creates a regular 2D polygon with the requested number of sides. The <span class="CodeRay"><span class="key">inner_radius</span>:</span> option lets you specify the radius to the middle of an edge, where <span class="CodeRay"><span class="key">radius</span>:</span> measures to the vertex point.</p>
+
+<p>You can also call this method as any of the following: <span class="CodeRay">polygon</span>, <span class="CodeRay">pentagon</span>, <span class="CodeRay">hexagon</span>, <span class="CodeRay">heptagon</span>, <span class="CodeRay">octagon</span>, <span class="CodeRay">nonagon</span>, <span class="CodeRay">enneagon</span>, <span class="CodeRay">decagon</span>, <span class="CodeRay">hendecagon</span>, <span class="CodeRay">undecagon</span>, <span class="CodeRay">dodecagon</span>, <span class="CodeRay">tridecagon</span>, <span class="CodeRay">tetradecagon</span>, <span class="CodeRay">pentadecagon</span>, <span class="CodeRay">hexadecagon</span>, <span class="CodeRay">heptadecagon</span>, <span class="CodeRay">octadecagon</span>, <span class="CodeRay">enneadecagon</span>, <span class="CodeRay">icosagon</span>, <span class="CodeRay">triacontagon</span>, <span class="CodeRay">tetracontagon</span>, <span class="CodeRay">pentacontagon</span>, <span class="CodeRay">hexacontagon</span>, <span class="CodeRay">heptacontagon</span>, <span class="CodeRay">octacontagon</span>, <span class="CodeRay">enneacontagon</span>, <span class="CodeRay">hectogon</span> which imply sides value from their names.</p>
+
+<hr>
+<h4 id="1s1h8m2">2D: <span class="CodeRay">polygon(<span class="key">points</span>: [[x,y], [x,y], ...])</span>
+</h4>
+
+<h4 id="1r23jjg">2D: <span class="CodeRay">polygon(<span class="key">points</span>: [[x,y], ...], <span class="key">paths</span>: [[<span class="integer">1</span>, <span class="integer">2</span>], [<span class="integer">3</span>, <span class="integer">4</span>]])</span>
+</h4>
+
+<p><span class="CodeRay">polygon()</span> creates a 2d shape from an array of coordinates, like a join the dots puzzle. If you specify the optional <span class="CodeRay"><span class="key">paths</span>:</span> you can slice up your points in to multiple groups, allowing you to add holes to the inside of your polygon. An optional <span class="CodeRay"><span class="key">convexity</span>:</span> argument can help with OpenCSG's live quick rendering in some situations. Check out the <a href="http://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Using_the_2D_Subsystem#Extrude_parameters_for_all_extrusion_modes">OpenSCAD wiki</a> for convexity info if you see display glitches.</p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+<a href="#n4" name="n4">4</a>
+<a href="#n5" name="n5">5</a>
+<a href="#n6" name="n6">6</a>
+<a href="#n7" name="n7">7</a>
+</pre></td>
+  <td class="code"><pre><span class="comment"># example from OpenSCAD User Manual</span>
+polygon(
+  <span class="key">points</span>: [
+    [<span class="integer">0</span>,<span class="integer">0</span>], [<span class="integer">100</span>,<span class="integer">0</span>], [<span class="integer">0</span>,<span class="integer">100</span>],
+    [<span class="integer">10</span>,<span class="integer">10</span>], [<span class="integer">80</span>,<span class="integer">10</span>], [<span class="integer">10</span>,<span class="integer">80</span>]
+  ], <span class="key">paths</span>: [[<span class="integer">0</span>,<span class="integer">1</span>,<span class="integer">2</span>], [<span class="integer">3</span>,<span class="integer">4</span>,<span class="integer">5</span>]]
+)
+</pre></td>
+</tr></table>
+<p><img src="assets/example-polygon.png" alt="rendered dark yellow polygon shaped like a right triangle, with middle section cut out"></p>
+
+<hr>
+<h4 id="oraov8">3D: <span class="CodeRay">sphere(<span class="key">radius</span>: <span class="float">5.0</span>)</span>
+</h4>
+
+<p><span class="CodeRay">sphere()</span> creates a polyhedron in a UV Sphere shape using the <span class="CodeRay">resolution()</span> settings of the current scope, positioned with the center of the sphere at the current scope's position. You can of course substitute <span class="CodeRay"><span class="key">diameter</span>:</span> for <span class="CodeRay"><span class="key">radius</span>:</span> as described at the top of this page. If you'd like a distorted sphere shape, check out the <span class="CodeRay">resize()</span> and <span class="CodeRay">scale()</span> <a href="scope.html">scope transforming methods</a>.</p>
+
+<hr>
+<h4 id="1nqrhk5">3D: <span class="CodeRay">cube(<span class="integer">5</span>)</span>
+</h4>
+
+<h4 id="18q71ru">3D: <span class="CodeRay">cube([<span class="integer">1</span>, <span class="integer">2</span>, <span class="integer">3</span>])</span>
+</h4>
+
+<h4 id="13mfurp">3D: <span class="CodeRay">cube(<span class="key">x</span>: <span class="integer">1</span>, <span class="key">y</span>: <span class="integer">2</span>, <span class="key">z</span>: <span class="integer">3</span>)</span>
+</h4>
+
+<h4 id="1v54piu">3D: <span class="CodeRay">cube(<span class="key">size</span>: [<span class="integer">1</span>, <span class="integer">2</span>, <span class="integer">3</span>], <span class="key">center</span>: <span class="predefined-constant">false</span>, <span class="key">corner_radius</span>: <span class="integer">0</span>)</span>
+</h4>
+
+<p><span class="CodeRay">cube()</span> creates a cube with sides of the specified length. If lengths are provided as an array or named arguments <span class="CodeRay"><span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span></span> this method creates a rectangular prism. Normally positioned at the bottom left front corner with size growing up, away and to the right of OpenSCAD's default view orientation, cube's can be positioned by their center point similar to a sphere by passing the <span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> argument or <a href="scope.html">setting it as a default</a> for your current scope via the <span class="CodeRay">defaults(<span class="key">center</span>: <span class="predefined-constant">true</span>) <span class="keyword">do</span> ... <span class="keyword">end</span></span> block.</p>
+
+<p>To make more comfortable cubes you can set the <span class="CodeRay"><span class="key">corner_radius</span>:</span> argument to a number greater than 0, rounding off the corners with a circular bevel that many millimeters deep. Keep in mind that rounded cubes take substantially longer to render than unrounded cubes.</p>
+
+<hr>
+</div>
+</body>
+</html>
