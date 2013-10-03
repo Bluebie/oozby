@@ -5,16 +5,16 @@ class Oozby::Preprocessor
   public
   
   default_filters [:xyz, default: 0]
-  passthrough :rotate
-  passthrough :translate
-  passthrough :mirror
-  passthrough :resize
+  passthrough :rotate, :a, :v
+  passthrough :translate, :v
+  passthrough :mirror, :v
+  passthrough :resize, :newsize, :auto
   default_filters [:xyz, default: 1]
-  passthrough :scale
+  passthrough :scale, :v
   
   default_filters # none for these guys
-  passthrough :multmatrix
-  passthrough :color
+  passthrough :multmatrix, :m
+  passthrough :color, :c
   
   default_filters :resolution, :layout_defaults, :expanded_names
   
@@ -37,9 +37,8 @@ class Oozby::Preprocessor
     return call
   end
   
-  passthrough :sphere
-  #passthrough :cylinder
-  passthrough :polyhedron
+  passthrough :sphere, :r
+  passthrough :polyhedron, :points, :triangles, :convexity
   # 2d shapes
   
   # detect requests for rounded squares and transfer them over
@@ -52,9 +51,9 @@ class Oozby::Preprocessor
   end
   
   filter :refuse_args, :h
-  passthrough :circle
+  passthrough :circle, :r
   filter :refuse_args, :h
-  passthrough :polygon
+  passthrough :polygon, :points, :paths
   # extrude 2d shapes to 3d shapes
   filter :expanded_names, height_label: :height
   passthrough :linear_extrude
