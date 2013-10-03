@@ -8,9 +8,9 @@ class Oozby::Preprocessor
   passthrough :rotate
   passthrough :translate
   passthrough :mirror
+  passthrough :resize
   default_filters [:xyz, default: 1]
   passthrough :scale
-  passthrough :resize  
   
   default_filters # none for these guys
   passthrough :multmatrix
