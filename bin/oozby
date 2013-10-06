@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'thor' # command line utility utility
+gem 'listen', '< 2.0.0'
 require 'listen' # listen to filesystem for changes in a smart way
 require 'pp' # pretty printer
 require 'rbconfig' # to get path to ruby binary, for making subprocesses
