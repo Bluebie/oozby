@@ -55,7 +55,7 @@ class OozbyUtility < Thor
         end
         
         puts "Watching folder for changes...".blue + " (" + "CTRL+C".bold + " to exit)"
-        Listen.to! directory, filter: /\.oozby$/ do |modified, added, removed|
+        listener = Listen.to(directory, ignore: /[^\.][^o][^o][^z][^b][^y]$/) do |modified, added, removed|
           modified.each { |path| recompile_handler[path] }
           added.each { |path| recompile_handler[path] }
           removed.each do |path|
@@ -66,11 +66,21 @@ class OozbyUtility < Thor
             end
           end
         end
+        
+        listener.start
+        sleep
       end
     end
   rescue Interrupt => e
     puts ""
     puts QuitMessage.blue
+  end
+  
+  # fetch version of oozby
+  desc "version", "Check version of oozby installed"
+  map '-v' => :version, '--version' => :version
+  def version
+    Puts "Oozby Version: #{Oozby.version}"
   end
   
   private
