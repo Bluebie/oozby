@@ -149,6 +149,16 @@ class Oozby::Environment
     (a[1].to_f * value_proportion) + (b[1].to_f * (1.0 - value_proportion))
   end
   
+  # utility for rotating around in a full circle and doing stuff
+  def turn iterations = nil, &proc
+    if angle
+      raise "Iterations must be Numeric" unless iterations.is_a? Numeric
+      (0.0...360.0).step(360.0 / iterations, &proc)
+    else
+      0.0...360.0 # return a range which can be iterated however
+    end
+  end
+  
   # gets and sets resolution settings
   def resolution **settings, &proc
     warn "Setting fragments_per_turn and degrees_per_fragment together makes no sense!" if settings[:fragments_per_turn] && settings[:degrees_per_fragment]
