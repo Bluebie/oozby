@@ -39,7 +39,7 @@ class OozbyUtility < Thor
         local_pwd = Dir.pwd
         puts "#{err.class.name.reversed}: #{err.message.sub(local_pwd + File::SEPARATOR, '').red}"
         err.backtrace.each { |line| puts line.sub(local_pwd + File::SEPARATOR, '') }
-        puts nil, nil
+        puts 7.chr, nil
       end
       
     elsif File.directory? path
