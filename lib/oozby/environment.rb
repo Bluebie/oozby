@@ -60,12 +60,13 @@ class Oozby::Environment
       # grab a list of all known methods, suggest a guess to user
       known = @method_preprocessor.known
       known.push(*public_methods(false))
+      known.push(*Oozby.constants)
       known.delete_if { |x| x.to_s.start_with? '_' }
       matcher = Amatch::Sellers.new(method_name.to_s)
       suggestion = known.min_by { |item| matcher.match(item.to_s) }
       
       warn "Called unknown method #{method_name}()"
-      warn "Perhaps you meant #{suggestion}()?" if suggestion
+      warn "Perhaps you meant #{suggestion}?" if suggestion
       
       return super # continue to raise the usual error and all that
     end
