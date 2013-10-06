@@ -151,7 +151,7 @@ class Oozby::Environment
   
   # utility for rotating around in a full circle and doing stuff
   def turn iterations = nil, &proc
-    if angle
+    if iterations
       raise "Iterations must be Numeric" unless iterations.is_a? Numeric
       (0.0...360.0).step(360.0 / iterations, &proc)
     else
