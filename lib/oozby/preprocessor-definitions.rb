@@ -207,7 +207,7 @@ class Oozby::Preprocessor
         inradius = call.named_args.delete(ir)
         if inradius.is_a? Range
           circumradius = Range.new(inradius.first.to_f / @env.cos(180.0 / sides),
-                           inradius.first.to_f / @env.cos(180.0 / sides),
+                           inradius.last.to_f / @env.cos(180.0 / sides),
                            inradius.exclude_end?)
         elsif inradius.respond_to? :to_f
           circumradius = inradius.to_f / @env.cos(180.0 / sides)
