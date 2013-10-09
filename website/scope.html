@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>oozby =&gt; physical objects in ruby</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="styles.css">
+<meta name="viewport" content="width=450">
+</head>
+<body lang="en">
+  <header><h1><a href="/">oozby</a></h1>
+    <h2>
+<span style="color:#d44d52">openscad</span>
+      <span style="color:#70bfb1">+</span>
+      <span style="color:#d44d52">ruby</span>
+      <span style="color:#70bfb1">==</span>
+      <span style="color:#4992d9">:awesome</span>
+</h2>
+  </header><div class="content">
+<h3 id="znwdrl">Oozby Scope</h3>
+
+<p>Oozby is an extended version of the Ruby programming language, so uses all the same scope conventions as Ruby itself. In addition to this oozby provides several methods which can be used to change the state of the language, manipulating the coordinate space, changing the default operation of method calls, and adjusting resolution settings. All of these methods can be called with a block, applying their adjustments only to oozby elements created inside that block. Some methods can also be called without a block to change the settings of the oozby environment more generally. This second form is considered bad style and not <a href="idiomatic.html">idiomatic</a> except for a specific circumstance: Setting the resolution and defaults for an entire file, as the first statements in the file before constructing shapes.</p>
+
+<hr>
+<h4 id="8rbgql">&gt; <span class="CodeRay">resolution(<span class="key">fragments_per_turn</span>:<span class="integer">30</span>, <span class="key">minimum</span>:<span class="integer">2</span>, <span class="key">fragments</span>:<span class="integer">0</span>)</span>
+</h4>
+
+<p>All shapes in oozby are represented by straight lines, so curved shapes like circles, spheres, cylinders, rotate_extrude, rounded cubes and squares are discretized in to polygons or polyhedrons during rendering. <span class="CodeRay">resolution()</span> configures how many faces are used to represent curving surfaces. The default values are shown above and any or all of them can be changed either for a <span class="CodeRay"><span class="keyword">do</span> ... <span class="keyword">end</span></span> block, or for the entire environment by calling resolution() without a block at the top of your oozby document.</p>
+
+<p>When OpenSCAD was first developed these defaults seemed appropriate, but as home 3D printers have gotten better, these default values can look pretty rough. While the defaults are great as a way to design shapes initially because calculations run quickly, before doing your final render to save a printable or cutable STL file, you may wish to increase the resolution by adding something like this to the top of your document:</p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+</pre></td>
+  <td class="code"><pre>resolution(<span class="key">fragments_per_turn</span>: <span class="integer">100</span>, <span class="key">minimum</span>: <span class="float">0.5</span>)</pre></td>
+</tr></table>
+<p>Each of the arguments are as follows:</p>
+
+<ul>
+<li>
+<span class="CodeRay"><span class="key">fragments_per_turn</span>:</span> maximum number of straight lines used to draw a circle</li>
+<li>
+<span class="CodeRay"><span class="key">minimum</span>:</span> minimum length in millimeters of each fragment. Smaller shapes use fewer fragments</li>
+<li>
+<span class="CodeRay"><span class="key">fragments</span>:</span> when set to non-zero, override previous two values and always use this many fragments, regardless of object size</li>
+</ul>
+<p>Note also that <span class="CodeRay"><span class="key">fragments_per_turn</span>:</span> describes one full rotation of a circle. Objects like rounded squares will use one quarter as many lines to represent each corner. You can also specify <span class="CodeRay"><span class="key">degrees_per_fragment</span>:</span> instead of <span class="CodeRay"><span class="key">fragments_per_turn</span>:</span> if you prefer.</p>
+
+<hr>
+<h4 id="10giai0">&gt; <span class="CodeRay">translate([x, y, z])</span>
+</h4>
+
+<h4 id="1ofr95e">&gt; <span class="CodeRay">translate([x, y])</span>
+</h4>
+
+<h4 id="15u4rnx">&gt; <span class="CodeRay">translate(<span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span>)</span>
+</h4>
+
+<p>Translations move the current scope to a new position within 2D or 3D space. Coordinates can by specified as a 2 or 3 item array of Numeric values, or as named arguments.</p>
+
+<p>Translations are always relative to your current coordinates, not the global coordinates, so they will add to the current values, not replace them.</p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+</pre></td>
+  <td class="code"><pre><span class="comment"># two spheres side by side</span>
+translate(<span class="key">x</span>: <span class="integer">-15</span>) &gt; sphere(<span class="integer">10</span>)
+translate(<span class="key">x</span>: <span class="integer">+15</span>) &gt; sphere(<span class="integer">10</span>)</pre></td>
+</tr></table>
+<hr>
+<h4 id="16wjfsw">&gt; <span class="CodeRay">scale(<span class="constant">Numeric</span>)</span>
+</h4>
+
+<h4 id="xhdhcx">&gt; <span class="CodeRay">scale([x, y, z])</span>
+</h4>
+
+<h4 id="vfvluf">&gt; <span class="CodeRay">scale([x, y])</span>
+</h4>
+
+<h4 id="1o9a4xd">&gt; <span class="CodeRay">scale(<span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span>)</span>
+</h4>
+
+<p>Scale multiplies the size of it's children. In the first form a value of 1.0 would cause no change, with 0.5 halving the sizes and 2 doubling them. Think of it a bit like zooming. By specifying an array or named arguments you can scale each axis differently, allowing you to stretch and distort primitives to create ovals, stretched spheres, or oval cylinders.</p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+</pre></td>
+  <td class="code"><pre><span class="comment"># sphere stretched to be twice as long over the x axis</span>
+scale(<span class="key">x</span>: <span class="integer">2</span>) &gt; sphere(<span class="integer">10</span>)</pre></td>
+</tr></table>
+<hr>
+<h4 id="1eo4r8i">&gt; <span class="CodeRay">rotate(<span class="constant">Numeric</span>)</span>
+</h4>
+
+<h4 id="1gnhb6o">&gt; <span class="CodeRay">rotate([x, y, z])</span>
+</h4>
+
+<h4 id="exrutw">&gt; <span class="CodeRay">rotate([x, y, z], <span class="key">v</span>: [x, y, z])</span>
+</h4>
+
+<h4 id="ituic8">&gt; <span class="CodeRay">rotate(<span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span>)</span>
+</h4>
+
+<p>Rotate around the current position by a number of degrees. It doesn't so much rotate it's children as much as it rotates the scope in which it's children are created. Rotations affect children translate calls, scales, and everything else. Rotation is applied in the order x, y, z, regardless of argument order. The optional argument <span class="CodeRay"><span class="key">v</span>:</span> allows you to specify an axis around which to apply the rotation. Check out the <a href="http://en.wikibooks.org/wiki/OpenSCAD_User_Manual/The_OpenSCAD_Language#rotate">OpenSCAD documentation</a> for more details on rotate.</p>
+
+<hr>
+<h4 id="c5xdhx">&gt; <span class="CodeRay">defaults(<span class="key">center</span>: <span class="predefined-constant">false</span>)</span>
+</h4>
+
+<p><span class="CodeRay">defaults()</span> reconfigures default settings for oozby primitives like square, cube, and cylinder. Currently this is only <span class="CodeRay"><span class="key">center</span>:</span>. Call defaults with a block and all oozby primitives created inside that block will use the new default instead of the standard value (typically <span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">false</span></span>), which can make your code more tidy and readable where you may have been manually specifying <span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> every time you made a primitive shape while creating complex shapes with boolean operations.</p>
+
+<table class="CodeRay"><tr>
+<td class="line-numbers"><pre><a href="#n1" name="n1">1</a>
+<a href="#n2" name="n2">2</a>
+<a href="#n3" name="n3">3</a>
+</pre></td>
+  <td class="code"><pre><span class="comment"># these two lines are functionally identical:</span>
+defaults(<span class="key">center</span>: <span class="predefined-constant">true</span>) { cube(<span class="integer">1</span>) }
+cube(<span class="integer">1</span>, <span class="key">center</span>: <span class="predefined-constant">true</span>)</pre></td>
+</tr></table>
+<hr>
+<h4 id="9y7kw4">&gt; <span class="CodeRay">preprocessor(<span class="predefined-constant">false</span>)</span>
+</h4>
+
+<p>call <span class="CodeRay">preprocessor(<span class="predefined-constant">false</span>)</span> with a block to disable the oozby preprocessor for the method calls used within the block. The preprocessor handles mapping friendlier argument names across, validating call argument types, adding support for rounded shapes, etc. This might be useful if you need to work around a bug in oozby. If that is the case, please report your issue on the <a href="https://github.com/Bluebie/oozby/issues">oozby bugtracker</a> so it can be fixed for a future version.</p>
+</div>
+</body>
+</html>

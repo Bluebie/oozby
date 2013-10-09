@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=450">
 </head>
 <body lang="en">
-  <header><h1>oozby</h1>
+  <header><h1><a href="/">oozby</a></h1>
     <h2>
 <span style="color:#d44d52">openscad</span>
       <span style="color:#70bfb1">+</span>
@@ -54,11 +54,9 @@
 </h4>
 
 <p><span class="CodeRay">square()</span> create a square or rectangle. The first calling style creates a square with sides that many millimeters across. In the second and third styles X and Y coordinates are specified, creating a rectangle. You can optionally pass <span class="CodeRay"><span class="key">corner_radius</span>:</span> and <span class="CodeRay"><span class="key">center</span>:</span> arguments
-<span class="CodeRay">
-square(<span class="integer">5</span>) <span class="comment"># make a 2d square with 5mm sides</span>
+<span class="CodeRay">square(<span class="integer">5</span>) <span class="comment"># make a 2d square with 5mm sides</span>
 square(<span class="integer">5</span>, <span class="key">cr</span>: <span class="float">1.5</span>) <span class="comment"># same as above, but corners rounded off at 1.5mm</span>
-square(<span class="key">x</span>: <span class="integer">5</span>, <span class="key">y</span>: <span class="integer">10</span>) <span class="comment"># make a rectange</span>
-</span></p>
+square(<span class="key">x</span>: <span class="integer">5</span>, <span class="key">y</span>: <span class="integer">10</span>) <span class="comment"># make a rectange</span></span></p>
 
 <p><span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> will position the square/rectangle by it's midpoint. When center is false or unspecified the origin of the square is the bottom left corner where x and y are their lowest values. <span class="CodeRay"><span class="key">corner_radius</span>:</span> rounds off the corners of the square for a smoother feel.</p>
 
@@ -100,8 +98,7 @@ polygon(
     [<span class="integer">0</span>,<span class="integer">0</span>], [<span class="integer">100</span>,<span class="integer">0</span>], [<span class="integer">0</span>,<span class="integer">100</span>],
     [<span class="integer">10</span>,<span class="integer">10</span>], [<span class="integer">80</span>,<span class="integer">10</span>], [<span class="integer">10</span>,<span class="integer">80</span>]
   ], <span class="key">paths</span>: [[<span class="integer">0</span>,<span class="integer">1</span>,<span class="integer">2</span>], [<span class="integer">3</span>,<span class="integer">4</span>,<span class="integer">5</span>]]
-)
-</pre></td>
+)</pre></td>
 </tr></table>
 <p><img src="assets/example-polygon.png" alt="rendered dark yellow polygon shaped like a right triangle, with middle section cut out"></p>
 
@@ -124,7 +121,7 @@ polygon(
 <h4 id="1v54piu">3D: <span class="CodeRay">cube(<span class="key">size</span>: [<span class="integer">1</span>, <span class="integer">2</span>, <span class="integer">3</span>], <span class="key">center</span>: <span class="predefined-constant">false</span>, <span class="key">corner_radius</span>: <span class="integer">0</span>)</span>
 </h4>
 
-<p><span class="CodeRay">cube()</span> creates a cube with sides of the specified length. If lengths are provided as an array or named arguments <span class="CodeRay"><span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span></span> this method creates a rectangular prism. Normally positioned at the bottom left front corner with size growing up, away and to the right of OpenSCAD's default view orientation, cube's can be positioned by their center point similar to a sphere by passing the <span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> argument or <a href="scope.html">setting it as a default</a> for your current scope via the <span class="CodeRay">defaults(<span class="key">center</span>: <span class="predefined-constant">true</span>) <span class="keyword">do</span> ... <span class="keyword">end</span></span> block.</p>
+<p><span class="CodeRay">cube()</span> creates a cube with sides of the specified length. If lengths are provided as an array or named arguments <span class="CodeRay"><span class="key">x</span>: <span class="constant">Numeric</span>, <span class="key">y</span>: <span class="constant">Numeric</span>, <span class="key">z</span>: <span class="constant">Numeric</span></span> this method creates a rectangular prism. Normally positioned at the bottom left front corner with size growing up, away and to the right of OpenSCAD's default view orientation, cube's can be positioned by their center point similar to a sphere by passing the <span class="CodeRay"><span class="key">center</span>: <span class="predefined-constant">true</span></span> argument or <a href="scope.html">setting it as a default</a> for an entire block of code with a <span class="CodeRay">defaults(<span class="key">center</span>: <span class="predefined-constant">true</span>) <span class="keyword">do</span> ... <span class="keyword">end</span></span> block.</p>
 
 <p>To make more comfortable cubes you can set the <span class="CodeRay"><span class="key">corner_radius</span>:</span> argument to a number greater than 0, rounding off the corners with a circular bevel that many millimeters deep. Keep in mind that rounded cubes take substantially longer to render than unrounded cubes.</p>
 

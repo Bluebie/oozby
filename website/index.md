@@ -11,6 +11,7 @@ So you can see what oozby code looks like, lets make a spanner for some M5 nuts 
 ![Picture of nut being measured as 7.83 millimetres side to side (inradius) using grey metal callipers](assets/nut-measurement.jpg)
 
 ```
+# render --camera='20,3,-4.0,45,0,-25,300'
 nut = 8.0 # nut was 7.83mm across on my callipers
 
 resolution minimum: 0.5 # smoother quality
@@ -40,8 +41,6 @@ defaults(center: true) do
   end
 end
 ```
-
-![3D rendered spanner, yellow and green on pale yellow background](assets/spanner-render.png)
 
 When I was done I asked OpenSCAD to render it, so I could save an STL file and 3D Print out my new spanner. It took 32 seconds to compute the final render, even with all the nicely rounded off shapes.
 
